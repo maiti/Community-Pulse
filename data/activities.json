@@ -1,0 +1,800 @@
+[
+  {
+    "id": "trail-workday",
+    "type": "event",
+    "category": "outdoors",
+    "title": "Community Trail & Park Workday",
+    "organization": "Hillside Parks Youth Corps",
+    "description": "Help rebuild a hillside trail, pull invasive ivy, and plant native grasses with a crew of teens. Gloves, tools, and snacks provided. Counts toward service hours.",
+    "location": {
+      "name": "Hillside Park — North Trailhead",
+      "address": "Upper Ridge Rd & Park Loop",
+      "coordinates": {
+        "lat": 37.77766,
+        "lng": -122.45659
+      }
+    },
+    "date": "2026-10-24T09:00:00",
+    "activityDuration": "3 hrs",
+    "durationRange": {
+      "min": 180,
+      "max": 180
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 17,
+      "transitNotes": "Bus 33 stops two blocks from the trailhead."
+    },
+    "driveTimeMinutes": 10,
+    "walkTimeMinutes": 31,
+    "tags": [
+      "Service Hours",
+      "No Experience Needed",
+      "Tools Provided"
+    ],
+    "vibeCategories": [
+      "outdoors",
+      "volunteer"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/trail-workday"
+  },
+  {
+    "id": "library-study-lounge",
+    "type": "space",
+    "category": "study",
+    "title": "Central Library Quiet Study Lounge",
+    "organization": "Public Library — Teen Services",
+    "description": "A reserved quiet floor for teens with fast Wi-Fi, charging stations, group study rooms you can book, and free printing up to 20 pages a day.",
+    "location": {
+      "name": "Central Library, 3rd Floor",
+      "address": "100 Library Plaza",
+      "coordinates": {
+        "lat": 37.76771,
+        "lng": -122.42818
+      }
+    },
+    "date": "Mon–Sat · 9 AM–8 PM",
+    "activityDuration": "Drop in",
+    "durationRange": {
+      "min": 30,
+      "max": 480
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 9,
+      "transitNotes": "Light rail & 4 bus lines at Civic Center station."
+    },
+    "driveTimeMinutes": 6,
+    "walkTimeMinutes": 9,
+    "tags": [
+      "Free Wi-Fi",
+      "Group Rooms",
+      "Free Printing"
+    ],
+    "vibeCategories": [
+      "study"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/library-study-lounge"
+  },
+  {
+    "id": "youth-art-walk",
+    "type": "event",
+    "category": "arts",
+    "title": "Downtown Youth Art Walk",
+    "organization": "Neighborhood Arts Collective",
+    "description": "Gallery-hop through student exhibits, live painting, and pop-up zine tables. Bring a friend or meet new ones — guides lead small groups every 30 minutes.",
+    "location": {
+      "name": "Arts District Gallery Row",
+      "address": "Gallery Row & 5th St",
+      "coordinates": {
+        "lat": 37.76138,
+        "lng": -122.41682
+      }
+    },
+    "date": "2026-10-30T17:30:00",
+    "activityDuration": "2 hrs",
+    "durationRange": {
+      "min": 120,
+      "max": 120
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 13,
+      "transitNotes": "Two blocks from the Market St bus corridor."
+    },
+    "driveTimeMinutes": 8,
+    "walkTimeMinutes": 21,
+    "tags": [
+      "Free",
+      "All Ages",
+      "Live Painting"
+    ],
+    "vibeCategories": [
+      "arts",
+      "social"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/youth-art-walk"
+  },
+  {
+    "id": "tabletop-game-night",
+    "type": "event",
+    "category": "games",
+    "title": "Teen Tabletop & Game Night",
+    "organization": "Rec Center Teen Council",
+    "description": "Strategy games, card battles, and a beginner-friendly campaign table. Snacks on us. Board game library open — teach or learn something new.",
+    "location": {
+      "name": "Valley Rec Center",
+      "address": "220 Collingwood Ave",
+      "coordinates": {
+        "lat": 37.75505,
+        "lng": -122.44295
+      }
+    },
+    "date": "2026-10-23T18:00:00",
+    "activityDuration": "2.5 hrs",
+    "durationRange": {
+      "min": 150,
+      "max": 150
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 12,
+      "transitNotes": "Streetcar stop at the corner."
+    },
+    "driveTimeMinutes": 7,
+    "walkTimeMinutes": 17,
+    "tags": [
+      "Beginner Friendly",
+      "Snacks",
+      "Ages 13–19"
+    ],
+    "vibeCategories": [
+      "games",
+      "social"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/tabletop-game-night"
+  },
+  {
+    "id": "watershed-nature-walk",
+    "type": "event",
+    "category": "outdoors",
+    "title": "Local Watershed Nature Walk",
+    "organization": "Creek Keepers Alliance",
+    "description": "Trace where your neighborhood's rainwater goes. A naturalist leads a creek-side walk with water testing kits and bird spotting along the way.",
+    "location": {
+      "name": "Canyon Creek Trail",
+      "address": "Creek Rd & Elk St",
+      "coordinates": {
+        "lat": 37.74872,
+        "lng": -122.46454
+      }
+    },
+    "date": "2026-11-01T10:00:00",
+    "activityDuration": "1.5 hrs",
+    "durationRange": {
+      "min": 90,
+      "max": 90
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 20,
+      "transitNotes": "Train + 10-min walk, or Bus 44."
+    },
+    "driveTimeMinutes": 12,
+    "walkTimeMinutes": 41,
+    "tags": [
+      "Naturalist-Led",
+      "Water Testing",
+      "Free"
+    ],
+    "vibeCategories": [
+      "outdoors"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/watershed-nature-walk"
+  },
+  {
+    "id": "garden-harvest-day",
+    "type": "event",
+    "category": "volunteer",
+    "title": "Community Garden Harvest Day",
+    "organization": "Green Blocks Garden Network",
+    "description": "Harvest greens, build compost beds, and pack produce boxes for neighbors. Take home a bag of whatever you pick.",
+    "location": {
+      "name": "Corner Lot Community Garden",
+      "address": "48 Garden Way",
+      "coordinates": {
+        "lat": 37.78037,
+        "lng": -122.41
+      }
+    },
+    "date": "2026-10-25T10:00:00",
+    "activityDuration": "2 hrs",
+    "durationRange": {
+      "min": 120,
+      "max": 120
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 19,
+      "transitNotes": "Bus 22 drops off one block away."
+    },
+    "driveTimeMinutes": 11,
+    "walkTimeMinutes": 36,
+    "tags": [
+      "Service Hours",
+      "Take-Home Produce",
+      "Outdoors"
+    ],
+    "vibeCategories": [
+      "volunteer",
+      "outdoors"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/garden-harvest-day"
+  },
+  {
+    "id": "food-bank-shift",
+    "type": "event",
+    "category": "volunteer",
+    "title": "Food Bank Youth Volunteer Shift",
+    "organization": "Neighborhood Food Bank",
+    "description": "Sort donations and pack grocery bags alongside other teen volunteers. Shifts are fast-paced, music is loud, and every bag feeds a family for a week.",
+    "location": {
+      "name": "Food Bank Warehouse",
+      "address": "900 Industrial Pkwy",
+      "coordinates": {
+        "lat": 37.75324,
+        "lng": -122.40205
+      }
+    },
+    "date": "2026-10-31T13:00:00",
+    "activityDuration": "3 hrs",
+    "durationRange": {
+      "min": 180,
+      "max": 180
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 20,
+      "transitNotes": "Light rail, 5-min walk."
+    },
+    "driveTimeMinutes": 12,
+    "walkTimeMinutes": 41,
+    "tags": [
+      "Service Hours",
+      "Ages 14+",
+      "Group Friendly"
+    ],
+    "vibeCategories": [
+      "volunteer",
+      "social"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/food-bank-shift"
+  },
+  {
+    "id": "cafe-study-corner",
+    "type": "space",
+    "category": "study",
+    "title": "Neighborhood Café Study Corner",
+    "organization": "Common Grounds Café",
+    "description": "A teen-friendly café with long tables, outlets everywhere, and a 'no purchase required after 3 PM' policy for students with homework.",
+    "location": {
+      "name": "Common Grounds Café",
+      "address": "512 Main St",
+      "coordinates": {
+        "lat": 37.77404,
+        "lng": -122.42477
+      }
+    },
+    "date": "Daily · 7 AM–9 PM",
+    "activityDuration": "Drop in",
+    "durationRange": {
+      "min": 30,
+      "max": 300
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 12,
+      "transitNotes": "Train station is 3 blocks away."
+    },
+    "driveTimeMinutes": 7,
+    "walkTimeMinutes": 17,
+    "tags": [
+      "Outlets",
+      "Student Friendly",
+      "Wi-Fi"
+    ],
+    "vibeCategories": [
+      "study",
+      "social"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1501504905252-473c47e087f8?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/cafe-study-corner"
+  },
+  {
+    "id": "open-mic-night",
+    "type": "event",
+    "category": "arts",
+    "title": "Youth Open Mic & Poetry Night",
+    "organization": "Voices Rising Youth Arts",
+    "description": "Spoken word, acoustic sets, and first-timers welcome. Sign up at the door for a 5-minute slot or just come to listen and cheer.",
+    "location": {
+      "name": "Southside Cultural Hall",
+      "address": "2868 Mission Blvd",
+      "coordinates": {
+        "lat": 37.75053,
+        "lng": -122.42023
+      }
+    },
+    "date": "2026-11-06T19:00:00",
+    "activityDuration": "2 hrs",
+    "durationRange": {
+      "min": 120,
+      "max": 120
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 15,
+      "transitNotes": "Train station is across the street."
+    },
+    "driveTimeMinutes": 9,
+    "walkTimeMinutes": 27,
+    "tags": [
+      "First-Timers Welcome",
+      "Free",
+      "Ages 13–19"
+    ],
+    "vibeCategories": [
+      "arts",
+      "social"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/open-mic-night"
+  },
+  {
+    "id": "retro-arcade-hangout",
+    "type": "space",
+    "category": "games",
+    "title": "Retro Arcade Teen Hangout",
+    "organization": "Pixel Lounge",
+    "description": "Free-play Tuesdays and Thursdays for teens with a student ID — classic cabinets, rhythm games, and a chill lounge to meet other players.",
+    "location": {
+      "name": "Pixel Lounge",
+      "address": "77 Market St",
+      "coordinates": {
+        "lat": 37.77043,
+        "lng": -122.40773
+      }
+    },
+    "date": "Tue & Thu · 3–7 PM",
+    "activityDuration": "Drop in",
+    "durationRange": {
+      "min": 30,
+      "max": 240
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 17,
+      "transitNotes": "Multiple bus lines on Market St."
+    },
+    "driveTimeMinutes": 10,
+    "walkTimeMinutes": 32,
+    "tags": [
+      "Free w/ Student ID",
+      "Lounge",
+      "Rhythm Games"
+    ],
+    "vibeCategories": [
+      "games",
+      "social"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/retro-arcade-hangout"
+  },
+  {
+    "id": "pickup-basketball",
+    "type": "space",
+    "category": "social",
+    "title": "Open Gym Pickup Basketball",
+    "organization": "Parks & Recreation",
+    "description": "Indoor courts reserved for teens every weekday afternoon. Pickup runs, a coach on site, and free water and snacks after 5 PM.",
+    "location": {
+      "name": "Westside Park Rec Gym",
+      "address": "300 Park Ave",
+      "coordinates": {
+        "lat": 37.76952,
+        "lng": -122.44864
+      }
+    },
+    "date": "Mon–Fri · 3–7 PM",
+    "activityDuration": "Drop in",
+    "durationRange": {
+      "min": 60,
+      "max": 240
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 12,
+      "transitNotes": "Streetcar stops at the park."
+    },
+    "driveTimeMinutes": 7,
+    "walkTimeMinutes": 17,
+    "tags": [
+      "Coach On Site",
+      "Free",
+      "Indoor"
+    ],
+    "vibeCategories": [
+      "social"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/pickup-basketball"
+  },
+  {
+    "id": "coding-lab",
+    "type": "space",
+    "category": "study",
+    "title": "Makerspace & Coding Lab Drop-In",
+    "organization": "Public Library — Teen Tech Lab",
+    "description": "Laptops, 3D printers, and mentors who can help you start a website, a game, or your first robotics project. No experience needed.",
+    "location": {
+      "name": "Branch Library Tech Lab",
+      "address": "451 Elm St",
+      "coordinates": {
+        "lat": 37.75957,
+        "lng": -122.43045
+      }
+    },
+    "date": "Mon–Thu · 2–6 PM",
+    "activityDuration": "Drop in",
+    "durationRange": {
+      "min": 45,
+      "max": 240
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 9,
+      "transitNotes": "Bus 48 stops out front."
+    },
+    "driveTimeMinutes": 6,
+    "walkTimeMinutes": 9,
+    "tags": [
+      "Mentors",
+      "3D Printers",
+      "Free"
+    ],
+    "vibeCategories": [
+      "study",
+      "games"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/coding-lab"
+  },
+  {
+    "id": "peer-study-jam",
+    "type": "event",
+    "category": "study",
+    "title": "Peer Study Jam: Finals Prep",
+    "organization": "Youth Tutoring Network",
+    "description": "College-student tutors run small group sessions for math, science, and essays. Bring your homework — leave with a plan and a study buddy.",
+    "location": {
+      "name": "Community Learning Center",
+      "address": "1801 Oak St",
+      "coordinates": {
+        "lat": 37.78218,
+        "lng": -122.43841
+      }
+    },
+    "date": "2026-11-12T16:00:00",
+    "activityDuration": "1.5 hrs",
+    "durationRange": {
+      "min": 90,
+      "max": 90
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 15,
+      "transitNotes": "Bus 21, 1-min walk."
+    },
+    "driveTimeMinutes": 9,
+    "walkTimeMinutes": 25,
+    "tags": [
+      "Free Tutoring",
+      "Small Groups",
+      "Snacks"
+    ],
+    "vibeCategories": [
+      "study",
+      "social"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/peer-study-jam"
+  },
+  {
+    "id": "mural-collective",
+    "type": "event",
+    "category": "arts",
+    "title": "Mural Painting Collective",
+    "organization": "Walls for Good",
+    "description": "Help paint a 40-foot community mural designed by local teens. Every skill level gets a section; artists teach brushwork and color mixing.",
+    "location": {
+      "name": "Mural Alley Workshop",
+      "address": "Alley Way & 24th St",
+      "coordinates": {
+        "lat": 37.7442,
+        "lng": -122.41341
+      }
+    },
+    "date": "2026-11-07T11:00:00",
+    "activityDuration": "4 hrs",
+    "durationRange": {
+      "min": 240,
+      "max": 240
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 19,
+      "transitNotes": "Train station, 6-min walk."
+    },
+    "driveTimeMinutes": 11,
+    "walkTimeMinutes": 39,
+    "tags": [
+      "Service Hours",
+      "Supplies Provided",
+      "All Skill Levels"
+    ],
+    "vibeCategories": [
+      "arts",
+      "volunteer"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/mural-collective"
+  },
+  {
+    "id": "board-game-cafe",
+    "type": "space",
+    "category": "games",
+    "title": "Board Game Café Teen Hours",
+    "organization": "Roll & Play Café",
+    "description": "500+ games on the shelves and a game guru to teach the rules. Teen hours on weekdays include half-price table fees.",
+    "location": {
+      "name": "Roll & Play Café",
+      "address": "1338 Ninth Ave",
+      "coordinates": {
+        "lat": 37.765,
+        "lng": -122.45886
+      }
+    },
+    "date": "Mon–Fri · 3–6 PM",
+    "activityDuration": "Drop in",
+    "durationRange": {
+      "min": 60,
+      "max": 180
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 15,
+      "transitNotes": "Streetcar stop at Ninth Ave."
+    },
+    "driveTimeMinutes": 9,
+    "walkTimeMinutes": 27,
+    "tags": [
+      "Half-Price Teen Hours",
+      "Game Guru",
+      "Snacks"
+    ],
+    "vibeCategories": [
+      "games",
+      "social"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1611996575749-79a3a250f948?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/board-game-cafe"
+  },
+  {
+    "id": "teen-center",
+    "type": "space",
+    "category": "social",
+    "title": "Teen Center Open Hangout",
+    "organization": "Youth Community Center",
+    "description": "A safe, free place to hang after school — couches, music room, homework tables, and youth workers who know what's happening in the neighborhood.",
+    "location": {
+      "name": "Youth Community Center",
+      "address": "1 Neighborhood Sq",
+      "coordinates": {
+        "lat": 37.76319,
+        "lng": -122.435
+      }
+    },
+    "date": "Mon–Fri · 2:30–8 PM",
+    "activityDuration": "Drop in",
+    "durationRange": {
+      "min": 30,
+      "max": 330
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 7,
+      "transitNotes": "Hub station for 6 bus lines."
+    },
+    "driveTimeMinutes": 4,
+    "walkTimeMinutes": 3,
+    "tags": [
+      "Free",
+      "Music Room",
+      "Youth Workers"
+    ],
+    "vibeCategories": [
+      "social",
+      "study"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/teen-center"
+  },
+  {
+    "id": "sunset-hilltop-meetup",
+    "type": "event",
+    "category": "outdoors",
+    "title": "Sunset Hilltop Picnic Meetup",
+    "organization": "Teen Outdoors Club",
+    "description": "Hike 15 minutes to the overlook for golden hour, a potluck, and outdoor games. A great low-pressure way to meet people from other schools.",
+    "location": {
+      "name": "Hilltop Overlook",
+      "address": "501 Summit Blvd",
+      "coordinates": {
+        "lat": 37.76048,
+        "lng": -122.45205
+      }
+    },
+    "date": "2026-10-27T17:00:00",
+    "activityDuration": "1.5 hrs",
+    "durationRange": {
+      "min": 90,
+      "max": 90
+    },
+    "transitInfo": {
+      "hasPublicTransit": false,
+      "estimatedTransitMinutes": null,
+      "transitNotes": "No direct bus to the summit — closest stop is a 20-min uphill walk."
+    },
+    "driveTimeMinutes": 8,
+    "walkTimeMinutes": 21,
+    "tags": [
+      "Potluck",
+      "Sunset",
+      "Meet New People"
+    ],
+    "vibeCategories": [
+      "outdoors",
+      "social"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/sunset-hilltop-meetup"
+  },
+  {
+    "id": "teen-book-club",
+    "type": "event",
+    "category": "social",
+    "title": "Teen Book Club: Graphic Novels",
+    "organization": "Public Library — Teen Services",
+    "description": "This month: a graphic novel about friendship and moving to a new city. Free copies for the first 15 people who sign up.",
+    "location": {
+      "name": "Branch Library Reading Room",
+      "address": "1833 Pine St",
+      "coordinates": {
+        "lat": 37.7867,
+        "lng": -122.44523
+      }
+    },
+    "date": "2026-11-04T16:30:00",
+    "activityDuration": "1 hr",
+    "durationRange": {
+      "min": 60,
+      "max": 60
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 18,
+      "transitNotes": "Bus 7 and 33 within two blocks."
+    },
+    "driveTimeMinutes": 10,
+    "walkTimeMinutes": 33,
+    "tags": [
+      "Free Books",
+      "Ages 13–18",
+      "Discussion"
+    ],
+    "vibeCategories": [
+      "social",
+      "study",
+      "arts"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/teen-book-club"
+  },
+  {
+    "id": "neighborhood-cleanup",
+    "type": "event",
+    "category": "volunteer",
+    "title": "Neighborhood Cleanup Crew",
+    "organization": "Clean Streets Youth Alliance",
+    "description": "Grab a picker and a crew. We clean three blocks, track what we find for a city report, and finish with free pizza.",
+    "location": {
+      "name": "Bayside Commons",
+      "address": "Channel St & 4th St",
+      "coordinates": {
+        "lat": 37.77314,
+        "lng": -122.39977
+      }
+    },
+    "date": "2026-11-08T09:30:00",
+    "activityDuration": "2 hrs",
+    "durationRange": {
+      "min": 120,
+      "max": 120
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 21,
+      "transitNotes": "Light rail stops at the Commons."
+    },
+    "driveTimeMinutes": 12,
+    "walkTimeMinutes": 42,
+    "tags": [
+      "Service Hours",
+      "Free Pizza",
+      "Group Friendly"
+    ],
+    "vibeCategories": [
+      "volunteer",
+      "outdoors"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/neighborhood-cleanup"
+  },
+  {
+    "id": "photo-walk",
+    "type": "event",
+    "category": "arts",
+    "title": "Teen Photography Walk",
+    "organization": "Lens Lab Youth Studio",
+    "description": "Learn composition and lighting while exploring colorful streets. Phones welcome — loaner cameras available. Best shots get printed for a pop-up show.",
+    "location": {
+      "name": "Square Park Meeting Point",
+      "address": "Park St & Oak St",
+      "coordinates": {
+        "lat": 37.79123,
+        "lng": -122.43273
+      }
+    },
+    "date": "2026-11-14T14:00:00",
+    "activityDuration": "2 hrs",
+    "durationRange": {
+      "min": 120,
+      "max": 120
+    },
+    "transitInfo": {
+      "hasPublicTransit": true,
+      "estimatedTransitMinutes": 19,
+      "transitNotes": "Bus 21 and 22 nearby."
+    },
+    "driveTimeMinutes": 11,
+    "walkTimeMinutes": 38,
+    "tags": [
+      "Loaner Cameras",
+      "Phones Welcome",
+      "Pop-Up Show"
+    ],
+    "vibeCategories": [
+      "arts",
+      "outdoors"
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1452587925148-ce544e77e70d?auto=format&fit=crop&w=600&q=70",
+    "signupUrl": "https://example.org/communitypulse/photo-walk"
+  }
+]
