@@ -66,8 +66,9 @@ export function buildFeed(
   }
 
   // Allow one missed criterion so the feed never collapses to a single card.
+  // A search names what someone wants, so quiz picks only rank its results.
   return items
-    .filter(({ match }) => match && match.score >= Math.max(1, match.total - 1))
+    .filter(({ match }) => q || (match && match.score >= Math.max(1, match.total - 1)))
     .sort(
       (a, b) =>
         (b.match?.score ?? 0) - (a.match?.score ?? 0) || a.activity.driveTimeMinutes - b.activity.driveTimeMinutes,
