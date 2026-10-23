@@ -147,7 +147,7 @@ export async function fetchTicketmasterEvents(ctx: SearchContext): Promise<Sourc
   const search = (extra: Record<string, string>) => {
     const params = new URLSearchParams({
       apikey: apiKey,
-      latlong: `${ctx.center.lat},${ctx.center.lng}`,
+      latlong: `${ctx.searchCenter.lat},${ctx.searchCenter.lng}`,
       radius: String(Math.max(2, Math.round(ctx.radiusKm / KM_PER_MILE))),
       unit: "miles",
       sort: "date,asc",

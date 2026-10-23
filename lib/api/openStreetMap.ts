@@ -1,9 +1,10 @@
-import { estimateTravel } from "../geo";
+import { estimateTravel, haversineKm } from "../geo";
 import type { Activity, CategoryId, Coordinates } from "../types";
 import { clip, fetchJson, joinAddress, pickImage, type SearchContext, type SourceResult } from "./shared";
 
 const ENDPOINT = "https://overpass-api.de/api/interpreter";
-const MAX_RADIUS_KM = 6;
+// One query for every kind at a fixed radius, so each area is a single cache entry.
+const SEARCH_RADIUS_KM = 6;
 const PER_KIND = 6;
 // Mapped places change slowly, and the public Overpass server asks for light use.
 const REVALIDATE = 24 * 60 * 60;
@@ -88,12 +89,6 @@ export function kindOf(tags: Record<string, string>): OsmKind | null {
   return null;
 }
 
-function kindsFor(vibes: CategoryId[]): OsmKind[] {
-  if (!vibes.length) return ALL_KINDS;
-  const matched = ALL_KINDS.filter((k) => vibes.some((v) => KINDS[k].vibes.includes(v)));
-  return matched.length ? matched : ALL_KINDS;
-}
-
 /** One Overpass query with a separate result cap per kind, so parks can't crowd out libraries. */
 export function buildQuery(kinds: OsmKind[], center: Coordinates, radiusM: number) {
   const around = `(around:${Math.round(radiusM)},${center.lat},${center.lng})`;
@@ -153,7 +148,8 @@ export function toActivity(el: OsmElement, ctx: SearchContext): Activity | null 
 
 /** Libraries, youth and community centers, skate parks, community gardens and parks from OpenStreetMap. */
 export async function fetchOpenStreetMap(ctx: SearchContext): Promise<SourceResult> {
-  const query = buildQuery(kindsFor(ctx.vibes), ctx.center, Math.min(ctx.radiusKm, MAX_RADIUS_KM) * 1000);
+  const query = buildQuery(ALL_KINDS, ctx.searchCenter, SEARCH_RADIUS_KM * 1000);
+  const maxKm = Math.min(ctx.radiusKm, SEARCH_RADIUS_KM) * 1.2;
   const data = await fetchJson<{ elements?: OsmElement[] }>("OpenStreetMap", ENDPOINT, {
     method: "POST",
     revalidate: REVALIDATE,
@@ -170,7 +166,7 @@ export async function fetchOpenStreetMap(ctx: SearchContext): Promise<SourceResu
   const cities: string[] = [];
   for (const el of data.elements ?? []) {
     const activity = toActivity(el, ctx);
-    if (!activity) continue;
+    if (!activity || haversineKm(ctx.center, activity.location.coordinates) > maxKm) continue;
     // Parks and gardens are often mapped as several areas sharing one name.
     const nameKey = activity.title.toLowerCase();
     if (seen.has(nameKey)) continue;

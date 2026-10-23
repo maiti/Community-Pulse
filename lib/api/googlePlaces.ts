@@ -5,7 +5,10 @@ import { fetchJson, pickImage, SourceSkipped, UpstreamError, type SearchContext,
 const NEARBY_NEW = "https://places.googleapis.com/v1/places:searchNearby";
 const TEXT_NEW = "https://places.googleapis.com/v1/places:searchText";
 const NEARBY_LEGACY = "https://maps.googleapis.com/maps/api/place/nearbysearch/json";
-const MAX_RADIUS_KM = 6;
+// Every search uses the same radius and result count, whatever the quiz
+// answers, so each request is cached once per area and shared by everyone.
+const SEARCH_RADIUS_KM = 6;
+const PER_KIND = 5;
 const REVALIDATE = 6 * 60 * 60;
 
 type PlaceKind =
@@ -264,8 +267,8 @@ const FIELD_MASK = [
 
 async function searchNew(key: string, kind: PlaceKind, ctx: SearchContext, count: number): Promise<RawPlace[]> {
   const circle = {
-    center: { latitude: ctx.center.lat, longitude: ctx.center.lng },
-    radius: Math.min(ctx.radiusKm, MAX_RADIUS_KM) * 1000,
+    center: { latitude: ctx.searchCenter.lat, longitude: ctx.searchCenter.lng },
+    radius: SEARCH_RADIUS_KM * 1000,
   };
   const text = KINDS[kind].text;
   const body = text
@@ -321,8 +324,8 @@ type LegacyPlace = {
 
 async function searchLegacy(key: string, kind: PlaceKind, ctx: SearchContext, count: number): Promise<RawPlace[]> {
   const params = new URLSearchParams({
-    location: `${ctx.center.lat},${ctx.center.lng}`,
-    radius: String(Math.min(ctx.radiusKm, MAX_RADIUS_KM) * 1000),
+    location: `${ctx.searchCenter.lat},${ctx.searchCenter.lng}`,
+    radius: String(SEARCH_RADIUS_KM * 1000),
     key,
   });
   // The legacy API has no community_center type; a keyword search covers it.
@@ -390,14 +393,17 @@ function toActivity(place: RawPlace, kind: PlaceKind, ctx: SearchContext): Activ
   };
 }
 
-/** Drops places a teen can't use, and Text Search hits outside the radius or off-topic. */
+/**
+ * Drops places a teen can't use, off-topic Text Search hits, and anything
+ * beyond this person's travel radius (the shared search is always 6 km wide).
+ */
 function fits(place: RawPlace, kind: PlaceKind, ctx: SearchContext) {
   if (kind === "library" && (PRIVATE_LIBRARY.test(place.name) || place.types.some((t) => CAMPUS_TYPES.includes(t)))) {
     return false;
   }
+  if (haversineKm(ctx.center, place.coordinates) > Math.min(ctx.radiusKm, SEARCH_RADIUS_KM) * 1.2) return false;
   const text = KINDS[kind].text;
-  if (!text) return true;
-  return text.keep.test(place.name) && haversineKm(ctx.center, place.coordinates) <= Math.min(ctx.radiusKm, MAX_RADIUS_KM) * 1.2;
+  return !text || text.keep.test(place.name);
 }
 
 /** Libraries, parks, cafés, bowling alleys, community centers, and volunteer spots near the centre. */
@@ -405,16 +411,16 @@ export async function fetchGooglePlaces(ctx: SearchContext): Promise<SourceResul
   const key = process.env.GOOGLE_PLACES_API_KEY;
   if (!key) throw new SourceSkipped("Add GOOGLE_PLACES_API_KEY to enable Google Places.");
 
+  // Quiz vibes only choose which searches run; each search is identical for everyone in the area.
   const kinds = kindsFor(ctx.vibes);
-  const perKind = Math.min(10, Math.max(4, Math.floor(20 / kinds.length)));
 
   // Places API (New) is the default for new keys; older projects may only have the legacy API enabled.
   let search = searchNew;
-  let results = await Promise.allSettled(kinds.map((k) => search(key, k, ctx, perKind)));
+  let results = await Promise.allSettled(kinds.map((k) => search(key, k, ctx, PER_KIND)));
   const denied = results.every((r) => r.status === "rejected" && r.reason instanceof UpstreamError && r.reason.status === 403);
   if (denied) {
     search = searchLegacy;
-    results = await Promise.allSettled(kinds.map((k) => search(key, k, ctx, perKind)));
+    results = await Promise.allSettled(kinds.map((k) => search(key, k, ctx, PER_KIND)));
   }
   if (results.every((r) => r.status === "rejected")) throw (results[0] as PromiseRejectedResult).reason;
 

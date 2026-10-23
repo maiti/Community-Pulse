@@ -4,7 +4,7 @@ import type { Activity, CategoryId, Coordinates, FeedResponse, LiveSourceId, Sou
 import { fetchEventbriteEvents } from "./eventbrite";
 import { fetchGooglePlaces } from "./googlePlaces";
 import { fetchOpenStreetMap } from "./openStreetMap";
-import { radiusForModes, SourceSkipped, type SearchContext, type SourceResult } from "./shared";
+import { radiusForModes, snapToGrid, SourceSkipped, type SearchContext, type SourceResult } from "./shared";
 import { fetchTicketmasterEvents } from "./ticketmaster";
 
 /** Below this many live listings, curated samples are merged in so the feed never looks empty. */
@@ -47,7 +47,13 @@ function mostCommon(values: string[]) {
  * blocks the others; each reports its own status alongside the results.
  */
 export async function loadFeed(query: FeedQuery, now = new Date()): Promise<FeedResponse> {
-  const ctx: SearchContext = { center: query.center, radiusKm: radiusForModes(query.modes), vibes: query.vibes, now };
+  const ctx: SearchContext = {
+    center: query.center,
+    searchCenter: snapToGrid(query.center),
+    radiusKm: radiusForModes(query.modes),
+    vibes: query.vibes,
+    now,
+  };
   const settled = await Promise.allSettled(SOURCES.map((s) => s.load(ctx)));
 
   const live: Activity[] = [];

@@ -4,7 +4,10 @@ import { hashString } from "../utils";
 
 /** What every source adapter receives. */
 export type SearchContext = {
+  /** Where travel times and distance checks are measured from. */
   center: Coordinates;
+  /** `center` snapped to a ~1 km grid. Upstream queries use it so neighbors share cache entries. */
+  searchCenter: Coordinates;
   radiusKm: number;
   /** Quiz vibes; empty means no preference. */
   vibes: CategoryId[];
@@ -58,6 +61,14 @@ export async function fetchJson<T>(
     throw new UpstreamError(res.status, `${source}: ${reason}`);
   }
   return (await res.json()) as T;
+}
+
+/**
+ * Snap a point to a 0.01° grid (about 1.1 km north–south, less east–west),
+ * so everyone in the same cell sends identical, cacheable upstream queries.
+ */
+export function snapToGrid({ lat, lng }: Coordinates): Coordinates {
+  return { lat: Math.round(lat * 100) / 100, lng: Math.round(lng * 100) / 100 };
 }
 
 /** Search radius grows with the slowest-to-fastest travel mode someone picked. */

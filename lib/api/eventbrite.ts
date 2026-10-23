@@ -120,8 +120,8 @@ async function searchNearby(token: string, ctx: SearchContext): Promise<EbEvent[
   if (searchRetired) return null;
   const from = hourFloor(ctx.now);
   const params = new URLSearchParams({
-    "location.latitude": String(ctx.center.lat),
-    "location.longitude": String(ctx.center.lng),
+    "location.latitude": String(ctx.searchCenter.lat),
+    "location.longitude": String(ctx.searchCenter.lng),
     "location.within": `${Math.round(ctx.radiusKm)}km`,
     "start_date.range_start": from.toISOString().replace(/\.\d{3}Z$/, "Z"),
     expand: "venue,category,organizer",

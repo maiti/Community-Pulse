@@ -41,7 +41,7 @@ The browser calls `GET /api/activities?lat=…&lng=…&district=…&vibe=…&tra
 - **Volunteer spots:** Google has no place type for food banks, youth centers, or community gardens, so those come from Text Search, with a name check and a radius check on every hit.
 - **No duplicates:** a place listed by both Google and OpenStreetMap (same name within 500 m, or the same kind of place within 80 m) appears once, with Google's ratings and hours.
 - **Fallback:** fewer than 8 live listings tops the feed up with the curated samples, re-centered on the area. The "Live Feed for …" badge in the feed opens a breakdown of where listings came from.
-- **Caching:** upstream calls use Next's data cache (15 minutes for events, 6 hours for places), and responses carry `s-maxage` so Vercel's CDN serves repeat requests. Coordinates are rounded to about 100 m so nearby users share cache entries.
+- **Caching:** upstream calls use Next's data cache (15 minutes for events, 6 hours for Google places, 24 hours for OpenStreetMap), and responses carry `s-maxage` so Vercel's CDN serves repeat requests. Upstream searches are centered on a ~1 km grid point rather than the exact location, and Google and OpenStreetMap always search the same 6 km radius with the same result count, so everyone in a neighborhood shares one set of upstream calls whatever their quiz answers. Distances, travel times, and the per-person radius are still applied from the exact location afterwards.
 
 Google Places requests are billed per call after Google's monthly free tier: one uncached area load makes up to 17 calls (11 Nearby Search, 6 Text Search), fewer when the quiz narrows the vibes. Ratings and opening hours put these calls in Google's Enterprise pricing tier, so set a daily quota in Google Cloud.
 
