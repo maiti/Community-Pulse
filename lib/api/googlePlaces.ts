@@ -1,15 +1,28 @@
-import { estimateTravel } from "../geo";
+import { estimateTravel, haversineKm } from "../geo";
 import type { Activity, CategoryId, Coordinates } from "../types";
 import { fetchJson, pickImage, SourceSkipped, UpstreamError, type SearchContext, type SourceResult } from "./shared";
 
 const NEARBY_NEW = "https://places.googleapis.com/v1/places:searchNearby";
+const TEXT_NEW = "https://places.googleapis.com/v1/places:searchText";
 const NEARBY_LEGACY = "https://maps.googleapis.com/maps/api/place/nearbysearch/json";
 const MAX_RADIUS_KM = 6;
 const REVALIDATE = 6 * 60 * 60;
 
-type PlaceKind = "library" | "park" | "cafe" | "bowling_alley" | "community_center";
+type PlaceKind =
+  | "library"
+  | "park"
+  | "cafe"
+  | "bowling_alley"
+  | "community_center"
+  | "food_bank"
+  | "youth_center"
+  | "community_garden";
 
-/** The third-space amenities we search for, and how each reads in the feed. */
+/**
+ * The third-space amenities we search for, and how each reads in the feed.
+ * Kinds with a `text` query have no Google place type, so they use Text
+ * Search, and `keep` checks the name so a loose match doesn't slip in.
+ */
 const KINDS: Record<
   PlaceKind,
   {
@@ -19,6 +32,8 @@ const KINDS: Record<
     free: boolean;
     range: [number, number];
     blurb: string;
+    /** Text Search query, the legacy API keyword, and a name check for each hit. */
+    text?: { query: string; keyword: string; keep: RegExp };
   }
 > = {
   library: {
@@ -61,7 +76,38 @@ const KINDS: Record<
     range: [30, 180],
     blurb: "A neighborhood hub for drop-in programs, classes, and volunteer projects. Check the front desk for teen hours.",
   },
+  food_bank: {
+    category: "volunteer",
+    vibes: ["volunteer", "social"],
+    label: "Food bank",
+    free: true,
+    range: [120, 180],
+    blurb: "Sort, pack, and hand out groceries for neighbors who need them. Most shifts welcome teens with a parent permission form, and they count toward service hours.",
+    text: { query: "food bank or food pantry", keyword: "food bank", keep: /food|pantry|hunger|meals?\b|kitchen/i },
+  },
+  youth_center: {
+    category: "social",
+    vibes: ["social", "games", "volunteer"],
+    label: "Youth center",
+    free: true,
+    range: [60, 180],
+    blurb: "A drop-in space built for teens: homework help, games, and programs run by staff and other young people.",
+    text: { query: "youth center or teen center", keyword: "youth center", keep: /youth|teen|boys|girls|\bclub\b|ymca|young/i },
+  },
+  community_garden: {
+    category: "volunteer",
+    vibes: ["volunteer", "outdoors"],
+    label: "Community garden",
+    free: true,
+    range: [60, 180],
+    blurb: "Neighbors grow food together here. Workdays welcome volunteers, and no gardening experience is needed.",
+    text: { query: "community garden", keyword: "community garden", keep: /garden|farm|orchard/i },
+  },
 };
+
+// Campus and specialist libraries usually need a student or staff ID.
+const PRIVATE_LIBRARY = /universit|college|campus|school of|law library|medical|seminary|institute|archive/i;
+const CAMPUS_TYPES = ["university", "school", "primary_school", "secondary_school"];
 const ALL_KINDS = Object.keys(KINDS) as PlaceKind[];
 
 /** Only search the amenities that fit the quiz vibes, so results are deeper rather than wider. */
@@ -83,6 +129,8 @@ type RawPlace = {
   /** e.g. "Tue · 9:00 AM – 8:00 PM"; the weekday is named so a cached label stays accurate. */
   hours: string;
   city?: string;
+  /** Google place types, e.g. ["library", "university"]. */
+  types: string[];
 };
 
 function todaysHours(descriptions: string[] | undefined, utcOffsetMinutes: number | undefined, now: Date) {
@@ -106,6 +154,7 @@ type NewPlace = {
   regularOpeningHours?: { weekdayDescriptions?: string[] };
   utcOffsetMinutes?: number;
   businessStatus?: string;
+  types?: string[];
 };
 
 const FIELD_MASK = [
@@ -120,27 +169,32 @@ const FIELD_MASK = [
   "regularOpeningHours.weekdayDescriptions",
   "utcOffsetMinutes",
   "businessStatus",
+  "types",
 ]
   .map((f) => `places.${f}`)
   .join(",");
 
 async function searchNew(key: string, kind: PlaceKind, ctx: SearchContext, count: number): Promise<RawPlace[]> {
-  const data = await fetchJson<{ places?: NewPlace[] }>("Google Places", NEARBY_NEW, {
+  const circle = {
+    center: { latitude: ctx.center.lat, longitude: ctx.center.lng },
+    radius: Math.min(ctx.radiusKm, MAX_RADIUS_KM) * 1000,
+  };
+  const text = KINDS[kind].text;
+  const body = text
+    ? // Text Search only takes a circle as a bias, so results are trimmed to the radius below.
+      { textQuery: text.query, pageSize: count, locationBias: { circle } }
+    : {
+        // Primary type only: a restaurant that also lists "cafe" isn't a third space.
+        includedPrimaryTypes: [kind],
+        maxResultCount: count,
+        rankPreference: "POPULARITY",
+        locationRestriction: { circle },
+      };
+  const data = await fetchJson<{ places?: NewPlace[] }>("Google Places", text ? TEXT_NEW : NEARBY_NEW, {
     method: "POST",
     revalidate: REVALIDATE,
     headers: { "Content-Type": "application/json", "X-Goog-Api-Key": key, "X-Goog-FieldMask": FIELD_MASK },
-    body: JSON.stringify({
-      // Primary type only: a restaurant that also lists "cafe" isn't a third space.
-      includedPrimaryTypes: [kind],
-      maxResultCount: count,
-      rankPreference: "POPULARITY",
-      locationRestriction: {
-        circle: {
-          center: { latitude: ctx.center.lat, longitude: ctx.center.lng },
-          radius: Math.min(ctx.radiusKm, MAX_RADIUS_KM) * 1000,
-        },
-      },
-    }),
+    body: JSON.stringify(body),
   });
   return (data.places ?? []).flatMap((p): RawPlace[] => {
     const lat = p.location?.latitude;
@@ -159,6 +213,7 @@ async function searchNew(key: string, kind: PlaceKind, ctx: SearchContext, count
         hours: todaysHours(p.regularOpeningHours?.weekdayDescriptions, p.utcOffsetMinutes, ctx.now),
         // formattedAddress ends "City, ST 94102, USA"; the city is third from the end.
         city: p.formattedAddress?.split(", ").at(-3),
+        types: p.types ?? [],
       },
     ];
   });
@@ -173,6 +228,7 @@ type LegacyPlace = {
   user_ratings_total?: number;
   opening_hours?: { open_now?: boolean };
   business_status?: string;
+  types?: string[];
 };
 
 async function searchLegacy(key: string, kind: PlaceKind, ctx: SearchContext, count: number): Promise<RawPlace[]> {
@@ -182,7 +238,9 @@ async function searchLegacy(key: string, kind: PlaceKind, ctx: SearchContext, co
     key,
   });
   // The legacy API has no community_center type; a keyword search covers it.
-  if (kind === "community_center") params.set("keyword", "community center");
+  const text = KINDS[kind].text;
+  if (text) params.set("keyword", text.keyword);
+  else if (kind === "community_center") params.set("keyword", "community center");
   else params.set("type", kind);
 
   const data = await fetchJson<{ status: string; results?: LegacyPlace[] }>("Google Places", `${NEARBY_LEGACY}?${params}`, {
@@ -205,6 +263,7 @@ async function searchLegacy(key: string, kind: PlaceKind, ctx: SearchContext, co
         ratingCount: p.user_ratings_total,
         mapsUrl: `https://www.google.com/maps/place/?q=place_id:${p.place_id}`,
         hours: p.opening_hours?.open_now === undefined ? "Hours vary" : p.opening_hours.open_now ? "Open now" : "Closed now",
+        types: p.types ?? [],
       },
     ];
   });
@@ -243,7 +302,17 @@ function toActivity(place: RawPlace, kind: PlaceKind, ctx: SearchContext): Activ
   };
 }
 
-/** Libraries, parks, cafés, bowling alleys and community centers near the centre. */
+/** Drops places a teen can't use, and Text Search hits outside the radius or off-topic. */
+function fits(place: RawPlace, kind: PlaceKind, ctx: SearchContext) {
+  if (kind === "library" && (PRIVATE_LIBRARY.test(place.name) || place.types.some((t) => CAMPUS_TYPES.includes(t)))) {
+    return false;
+  }
+  const text = KINDS[kind].text;
+  if (!text) return true;
+  return text.keep.test(place.name) && haversineKm(ctx.center, place.coordinates) <= Math.min(ctx.radiusKm, MAX_RADIUS_KM) * 1.2;
+}
+
+/** Libraries, parks, cafés, bowling alleys, community centers, and volunteer spots near the centre. */
 export async function fetchGooglePlaces(ctx: SearchContext): Promise<SourceResult> {
   const key = process.env.GOOGLE_PLACES_API_KEY;
   if (!key) throw new SourceSkipped("Add GOOGLE_PLACES_API_KEY to enable Google Places.");
@@ -266,13 +335,15 @@ export async function fetchGooglePlaces(ctx: SearchContext): Promise<SourceResul
   const cities: string[] = [];
   results.forEach((result, i) => {
     if (result.status !== "fulfilled") return;
+    const kind = kinds[i];
     for (const place of result.value) {
+      if (!fits(place, kind, ctx)) continue;
       // Big parks come back as several entrances or areas sharing one name.
       const nameKey = place.name.toLowerCase();
       if (seen.has(place.id) || seen.has(nameKey)) continue;
       seen.add(place.id);
       seen.add(nameKey);
-      activities.push(toActivity(place, kinds[i], ctx));
+      activities.push(toActivity(place, kind, ctx));
       if (place.city) cities.push(place.city);
     }
   });

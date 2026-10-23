@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { createPersistentStore, usePersistentStore } from "./persistent-store";
+import type { District } from "./api/district";
 import type { Coordinates, LocationProfile } from "./types";
 
 export const LOCATION_PROFILES: LocationProfile[] = [
@@ -71,13 +72,25 @@ export const DEFAULT_PROFILE_ID = "ca-11";
 
 const profileIdStore = createPersistentStore<string>("cp:location", DEFAULT_PROFILE_ID);
 const detectedStore = createPersistentStore<Coordinates | null>("cp:detected", null);
+const detectedDistrictStore = createPersistentStore<District | null>("cp:detected-district", null);
 
-function detectedProfile(coords: Coordinates): LocationProfile {
+/** Asks the server which congressional district a point is in; null when unknown. */
+async function fetchDistrict({ lat, lng }: Coordinates): Promise<District | null> {
+  try {
+    const res = await fetch(`/api/district?lat=${lat.toFixed(3)}&lng=${lng.toFixed(3)}`);
+    if (!res.ok) return null;
+    return ((await res.json()) as { district: District | null }).district;
+  } catch {
+    return null;
+  }
+}
+
+function detectedProfile(coords: Coordinates, district: District | null): LocationProfile {
   return {
     id: "detected",
-    code: "Near Me",
+    code: district?.code ?? "Near Me",
     name: "Your Neighborhood",
-    label: "Based on your device location",
+    label: district ? `${district.label} · your location` : "Based on your device location",
     kind: "detected",
     centroid: coords,
     anchorLabel: "your location",
@@ -100,11 +113,12 @@ const LocationContext = createContext<LocationState | null>(null);
 export function LocationProvider({ children }: { children: ReactNode }) {
   const [profileId, setProfileId] = usePersistentStore(profileIdStore);
   const [detected, setDetected] = usePersistentStore(detectedStore);
+  const [detectedDistrict, setDetectedDistrict] = usePersistentStore(detectedDistrictStore);
   const [detectStatus, setDetectStatus] = useState<DetectStatus>("idle");
 
   const profiles = useMemo(
-    () => (detected ? [detectedProfile(detected), ...LOCATION_PROFILES] : LOCATION_PROFILES),
-    [detected],
+    () => (detected ? [detectedProfile(detected, detectedDistrict), ...LOCATION_PROFILES] : LOCATION_PROFILES),
+    [detected, detectedDistrict],
   );
   const profile = profiles.find((p) => p.id === profileId) ?? LOCATION_PROFILES[0];
 
@@ -118,10 +132,18 @@ export function LocationProvider({ children }: { children: ReactNode }) {
       setDetectStatus("locating");
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          setDetected({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setDetected(coords);
+          setDetectedDistrict(null);
           setProfileId("detected");
           setDetectStatus("idle");
           resolve(true);
+          // The feed starts loading right away; the district badge fills in when the Census answers.
+          void fetchDistrict(coords).then((district) => {
+            // Ignore a slow answer for an older fix.
+            const latest = detectedStore.read();
+            if (latest?.lat === coords.lat && latest?.lng === coords.lng) setDetectedDistrict(district);
+          });
         },
         (err) => {
           setDetectStatus(err.code === err.PERMISSION_DENIED ? "denied" : "unavailable");
@@ -130,7 +152,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 },
       );
     });
-  }, [setDetected, setProfileId]);
+  }, [setDetected, setDetectedDistrict, setProfileId]);
 
   const value = useMemo(
     () => ({ profile, profiles, setProfileId, detectLocation, detectStatus }),

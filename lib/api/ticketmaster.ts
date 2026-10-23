@@ -52,6 +52,11 @@ const DEFAULT_SEGMENT = SEGMENTS.Miscellaneous;
 
 // This feed is for teens, so drop anything marked 18+ or 21+.
 const ADULTS_ONLY = /\b(18|21)\s*\+|\b(18|21)\s*(and|&)\s*(over|up|older)|\bages?\s*(18|21)\b|\bover\s*21\b/i;
+// Club shows and comedy often run 18+/21+ without Ticketmaster flagging it,
+// so those only count when the listing says a teen can get in.
+const NEEDS_ALL_AGES = new Set(["Music", "Miscellaneous", "Undefined", ""]);
+const NEEDS_ALL_AGES_GENRES = new Set(["Comedy"]);
+const TEEN_OK = /\ball[- ]ages\b|\bfamily\b|\b([5-9]|1[0-4])\s*(\+|(and|&)\s*(over|up|older))/i;
 // Upsells listed as their own "events".
 const ADD_ONS = /\b(vip packages?|parking|upgrades?|suites?|premium seating|hotel packages?)\b/i;
 
@@ -76,6 +81,8 @@ function toActivity(event: TmEvent, ctx: SearchContext): Activity | null {
 
   const segmentName = event.classifications?.[0]?.segment?.name ?? "";
   const rawGenre = event.classifications?.[0]?.genre?.name;
+  const needsAllAges = NEEDS_ALL_AGES.has(segmentName) || NEEDS_ALL_AGES_GENRES.has(rawGenre ?? "");
+  if (needsAllAges && !TEEN_OK.test([event.name, event.info, event.pleaseNote].join(" "))) return null;
   const genre = rawGenre && !["Undefined", "Other"].includes(rawGenre) ? rawGenre : undefined;
   const segment = SEGMENTS[segmentName] ?? DEFAULT_SEGMENT;
   const venueName = venue.name ?? "Venue";
@@ -139,7 +146,8 @@ export async function fetchTicketmasterEvents(ctx: SearchContext): Promise<Sourc
     latlong: `${ctx.center.lat},${ctx.center.lng}`,
     radius: String(Math.max(2, Math.round(ctx.radiusKm / KM_PER_MILE))),
     unit: "miles",
-    size: "60",
+    // Most club shows are filtered out, so ask for a deeper page.
+    size: "120",
     sort: "date,asc",
     startDateTime: tmTime(from),
     endDateTime: tmTime(until),
