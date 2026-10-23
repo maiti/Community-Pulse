@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertTriangle, CalendarDays, Check, ChevronDown, LoaderCircle, MapPin, Minus, Ticket, type LucideIcon } from "lucide-react";
+import { AlertTriangle, CalendarDays, Check, ChevronDown, LoaderCircle, MapPin, Minus, Ticket, Trees, type LucideIcon } from "lucide-react";
 import { useAppState } from "@/lib/app-state";
 import { useLocationState } from "@/lib/location-state";
 import type { LiveSourceId, SourceStatus } from "@/lib/types";
@@ -12,6 +12,7 @@ const SOURCE_ICONS: Record<LiveSourceId, LucideIcon> = {
   eventbrite: CalendarDays,
   ticketmaster: Ticket,
   google: MapPin,
+  osm: Trees,
 };
 
 function SourceRow({ source }: { source: SourceStatus }) {

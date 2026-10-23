@@ -7,7 +7,7 @@ import { useAppState } from "@/lib/app-state";
 import { CATEGORIES } from "@/lib/categories";
 import { directionsUrl } from "@/lib/geo";
 import { useLocationState } from "@/lib/location-state";
-import { SOURCE_ATTRIBUTION } from "@/lib/sources";
+import { isPlaceSource, SOURCE_ATTRIBUTION } from "@/lib/sources";
 import type { ActivitySource } from "@/lib/types";
 import { formatWhen } from "@/lib/utils";
 import { ActivityThumb, CategoryBadge } from "./ActivityCard";
@@ -18,6 +18,7 @@ const LINK_LABELS: Record<ActivitySource, string> = {
   eventbrite: "Register on Eventbrite",
   ticketmaster: "Get tickets on Ticketmaster",
   google: "View on Google Maps",
+  osm: "More info",
   curated: "Organizer page",
 };
 
@@ -81,7 +82,7 @@ export function PlanDialog() {
                 </dl>
                 <p className="flex items-center gap-1.5 text-meta text-ink-muted">
                   <Users className="size-3.5 text-teal" />
-                  {activity.source === "google" ? (
+                  {isPlaceSource(activity.source) ? (
                     // Places have a type, not a host.
                     <span className="font-semibold text-ink">{activity.organization}</span>
                   ) : (

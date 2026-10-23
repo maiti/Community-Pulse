@@ -14,9 +14,18 @@ type PlaceKind =
   | "cafe"
   | "bowling_alley"
   | "community_center"
+  | "museum"
+  | "art_gallery"
+  | "video_arcade"
+  | "skateboard_park"
+  | "swimming_pool"
+  | "botanical_garden"
   | "food_bank"
   | "youth_center"
-  | "community_garden";
+  | "community_garden"
+  | "volunteer_center"
+  | "climbing_gym"
+  | "makerspace";
 
 /**
  * The third-space amenities we search for, and how each reads in the feed.
@@ -76,6 +85,54 @@ const KINDS: Record<
     range: [30, 180],
     blurb: "A neighborhood hub for drop-in programs, classes, and volunteer projects. Check the front desk for teen hours.",
   },
+  museum: {
+    category: "arts",
+    vibes: ["arts", "study"],
+    label: "Museum",
+    free: false,
+    range: [60, 180],
+    blurb: "Exhibits worth a slow wander with friends. Many museums have free or reduced teen admission, or a free day each month.",
+  },
+  art_gallery: {
+    category: "arts",
+    vibes: ["arts"],
+    label: "Art gallery",
+    free: true,
+    range: [30, 90],
+    blurb: "Rotating shows from local and visiting artists. Galleries are usually free to walk into, and openings are a good way to meet people.",
+  },
+  video_arcade: {
+    category: "games",
+    vibes: ["games", "social"],
+    label: "Arcade",
+    free: false,
+    range: [60, 150],
+    blurb: "Classic cabinets, rhythm games, and prize counters. Easy to drop into with a group.",
+  },
+  skateboard_park: {
+    category: "outdoors",
+    vibes: ["outdoors", "games", "social"],
+    label: "Skate park",
+    free: true,
+    range: [30, 150],
+    blurb: "Bowls, rails, and ledges for skating, scooters, and BMX. Bring a helmet; locals are usually happy to share tips.",
+  },
+  swimming_pool: {
+    category: "outdoors",
+    vibes: ["outdoors", "social"],
+    label: "Pool",
+    free: false,
+    range: [60, 150],
+    blurb: "Lap swim, open swim, and sometimes lifeguard training for teens. Check the schedule for drop-in hours.",
+  },
+  botanical_garden: {
+    category: "outdoors",
+    vibes: ["outdoors", "study"],
+    label: "Garden",
+    free: false,
+    range: [45, 150],
+    blurb: "Quiet paths and plants from around the world. A calm place to walk, sketch, or study outside.",
+  },
   food_bank: {
     category: "volunteer",
     vibes: ["volunteer", "social"],
@@ -102,6 +159,37 @@ const KINDS: Record<
     range: [60, 180],
     blurb: "Neighbors grow food together here. Workdays welcome volunteers, and no gardening experience is needed.",
     text: { query: "community garden", keyword: "community garden", keep: /garden|farm|orchard/i },
+  },
+  volunteer_center: {
+    category: "volunteer",
+    vibes: ["volunteer", "social"],
+    label: "Volunteer center",
+    free: true,
+    range: [60, 180],
+    blurb: "Connects people with local volunteer shifts, from tutoring to park restoration. Ask about projects that take teens and count toward service hours.",
+    text: {
+      query: "volunteer center or habitat for humanity",
+      keyword: "volunteer center",
+      keep: /volunteer|habitat|americorps|service corps|serve\b/i,
+    },
+  },
+  climbing_gym: {
+    category: "games",
+    vibes: ["games", "outdoors", "social"],
+    label: "Climbing gym",
+    free: false,
+    range: [60, 180],
+    blurb: "Bouldering and roped climbing for every level. Most gyms run youth teams and beginner nights, and rent shoes at the desk.",
+    text: { query: "climbing gym", keyword: "climbing gym", keep: /climb|boulder|crag|\bwall\b/i },
+  },
+  makerspace: {
+    category: "study",
+    vibes: ["study", "arts"],
+    label: "Makerspace",
+    free: false,
+    range: [60, 180],
+    blurb: "Shared tools for building things: 3D printers, laser cutters, electronics, and sewing machines, plus classes to learn them.",
+    text: { query: "makerspace", keyword: "makerspace", keep: /maker|hacker|fab ?lab|tech ?shop|workshop|tinker/i },
   },
 };
 

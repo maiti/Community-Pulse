@@ -1,7 +1,9 @@
 import { curatedAround } from "../curated";
+import { haversineKm } from "../geo";
 import type { Activity, CategoryId, Coordinates, FeedResponse, LiveSourceId, SourceStatus, TravelMode } from "../types";
 import { fetchEventbriteEvents } from "./eventbrite";
 import { fetchGooglePlaces } from "./googlePlaces";
+import { fetchOpenStreetMap } from "./openStreetMap";
 import { radiusForModes, SourceSkipped, type SearchContext, type SourceResult } from "./shared";
 import { fetchTicketmasterEvents } from "./ticketmaster";
 
@@ -12,6 +14,8 @@ const SOURCES: { id: LiveSourceId; label: string; load: (ctx: SearchContext) => 
   { id: "eventbrite", label: "Eventbrite", load: fetchEventbriteEvents },
   { id: "ticketmaster", label: "Ticketmaster", load: fetchTicketmasterEvents },
   { id: "google", label: "Google Places", load: fetchGooglePlaces },
+  // Last, so a place Google also lists keeps Google's ratings and hours.
+  { id: "osm", label: "OpenStreetMap", load: fetchOpenStreetMap },
 ];
 
 export type FeedQuery = {
@@ -19,6 +23,18 @@ export type FeedQuery = {
   vibes: CategoryId[];
   modes: TravelMode[];
 };
+
+const normalName = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+/**
+ * Two sources describing one real place: the same name close by, or the same
+ * kind of place ("Library") at nearly the same spot under different names.
+ */
+function samePlace(a: Activity, b: Activity) {
+  if (a.type !== "space" || b.type !== "space") return false;
+  const km = haversineKm(a.location.coordinates, b.location.coordinates);
+  return (normalName(a.title) === normalName(b.title) && km < 0.5) || (a.organization === b.organization && km < 0.08);
+}
 
 function mostCommon(values: string[]) {
   const counts = new Map<string, number>();
@@ -45,7 +61,7 @@ export async function loadFeed(query: FeedQuery, now = new Date()): Promise<Feed
       console.error(`[activities] ${label} failed:`, reason instanceof Error ? reason.message : reason);
       return { id, label, state: "error", count: 0, note: reason instanceof Error ? reason.message : "Request failed" };
     }
-    const fresh = result.value.activities.filter((a) => !seen.has(a.id));
+    const fresh = result.value.activities.filter((a) => !seen.has(a.id) && !live.some((b) => samePlace(a, b)));
     fresh.forEach((a) => seen.add(a.id));
     live.push(...fresh);
     cities.push(...result.value.cities);

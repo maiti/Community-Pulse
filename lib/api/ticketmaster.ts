@@ -13,7 +13,8 @@ import {
 } from "./shared";
 
 const ENDPOINT = "https://app.ticketmaster.com/discovery/v2/events.json";
-const MAX_RESULTS = 15;
+const MAX_RESULTS = 25;
+const LOOKAHEAD_DAYS = 45;
 const KM_PER_MILE = 1.609;
 
 type TmImage = { url: string; ratio?: string; width: number };
@@ -31,7 +32,8 @@ type TmEvent = {
   pleaseNote?: string;
   images?: TmImage[];
   dates?: { start?: { localDate?: string; localTime?: string }; status?: { code?: string } };
-  classifications?: { segment?: { name?: string }; genre?: { name?: string } }[];
+  /** `family` marks events Ticketmaster classifies as family-friendly. */
+  classifications?: { segment?: { name?: string }; genre?: { name?: string }; family?: boolean }[];
   priceRanges?: { min?: number; currency?: string }[];
   ageRestrictions?: { legalAgeEnforced?: boolean };
   promoter?: { name?: string };
@@ -81,7 +83,8 @@ function toActivity(event: TmEvent, ctx: SearchContext): Activity | null {
 
   const segmentName = event.classifications?.[0]?.segment?.name ?? "";
   const rawGenre = event.classifications?.[0]?.genre?.name;
-  const needsAllAges = NEEDS_ALL_AGES.has(segmentName) || NEEDS_ALL_AGES_GENRES.has(rawGenre ?? "");
+  const family = event.classifications?.some((c) => c.family) ?? false;
+  const needsAllAges = !family && (NEEDS_ALL_AGES.has(segmentName) || NEEDS_ALL_AGES_GENRES.has(rawGenre ?? ""));
   if (needsAllAges && !TEEN_OK.test([event.name, event.info, event.pleaseNote].join(" "))) return null;
   const genre = rawGenre && !["Undefined", "Other"].includes(rawGenre) ? rawGenre : undefined;
   const segment = SEGMENTS[segmentName] ?? DEFAULT_SEGMENT;
@@ -140,21 +143,27 @@ export async function fetchTicketmasterEvents(ctx: SearchContext): Promise<Sourc
   if (!apiKey) throw new SourceSkipped("Add TICKETMASTER_API_KEY to enable Ticketmaster events.");
 
   const from = hourFloor(ctx.now);
-  const until = new Date(from.getTime() + 21 * 24 * 60 * 60 * 1000);
-  const params = new URLSearchParams({
-    apikey: apiKey,
-    latlong: `${ctx.center.lat},${ctx.center.lng}`,
-    radius: String(Math.max(2, Math.round(ctx.radiusKm / KM_PER_MILE))),
-    unit: "miles",
-    // Most club shows are filtered out, so ask for a deeper page.
-    size: "120",
-    sort: "date,asc",
-    startDateTime: tmTime(from),
-    endDateTime: tmTime(until),
-  });
+  const until = new Date(from.getTime() + LOOKAHEAD_DAYS * 24 * 60 * 60 * 1000);
+  const search = (extra: Record<string, string>) => {
+    const params = new URLSearchParams({
+      apikey: apiKey,
+      latlong: `${ctx.center.lat},${ctx.center.lng}`,
+      radius: String(Math.max(2, Math.round(ctx.radiusKm / KM_PER_MILE))),
+      unit: "miles",
+      sort: "date,asc",
+      startDateTime: tmTime(from),
+      endDateTime: tmTime(until),
+      ...extra,
+    });
+    return fetchJson<TmResponse>("Ticketmaster", `${ENDPOINT}?${params}`, { revalidate: 900 });
+  };
 
-  const data = await fetchJson<TmResponse>("Ticketmaster", `${ENDPOINT}?${params}`, { revalidate: 900 });
-  const events = data._embedded?.events ?? [];
+  // Tonight's club shows fill the first page of a date-sorted search, so family
+  // events get their own search and go first. Most club shows are filtered out,
+  // so the general search asks for a deeper page.
+  const pages = await Promise.allSettled([search({ classificationName: "Family", size: "50" }), search({ size: "120" })]);
+  if (pages.every((p) => p.status === "rejected")) throw (pages[1] as PromiseRejectedResult).reason;
+  const events = pages.flatMap((p) => (p.status === "fulfilled" ? (p.value._embedded?.events ?? []) : []));
 
   // Tours and residencies repeat; keep the soonest date of each show at each venue.
   const seen = new Set<string>();
@@ -164,8 +173,9 @@ export async function fetchTicketmasterEvents(ctx: SearchContext): Promise<Sourc
     const activity = toActivity(event, ctx);
     if (!activity) continue;
     const key = `${activity.title.toLowerCase()}|${activity.location.name.toLowerCase()}`;
-    if (seen.has(key)) continue;
+    if (seen.has(key) || seen.has(activity.id)) continue;
     seen.add(key);
+    seen.add(activity.id);
     activities.push(activity);
     const city = event._embedded?.venues?.[0]?.city?.name;
     if (city) cities.push(city);

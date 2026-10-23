@@ -7,7 +7,7 @@ import { Bus, Car, Check, Clock3, Footprints, Heart, Navigation, Sparkles } from
 import { CATEGORIES } from "@/lib/categories";
 import { directionsUrl } from "@/lib/geo";
 import type { MatchResult } from "@/lib/match";
-import { SOURCE_ATTRIBUTION } from "@/lib/sources";
+import { isPlaceSource, SOURCE_ATTRIBUTION } from "@/lib/sources";
 import type { Activity, TravelMode } from "@/lib/types";
 import { cn, formatWhen } from "@/lib/utils";
 
@@ -168,7 +168,7 @@ function ActivityCardImpl({
             <h3 className="line-clamp-1 text-[15px] font-bold leading-5 text-ink">{activity.title}</h3>
             <p className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-meta text-ink-muted">
               {/* Places carry a type ("Library"), not a host. */}
-              <span className="truncate">{activity.source === "google" ? activity.organization : `by ${activity.organization}`}</span>
+              <span className="truncate">{isPlaceSource(activity.source) ? activity.organization : `by ${activity.organization}`}</span>
               <span className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-ink">
                 <Clock3 className="size-3.5 text-teal" />
                 {activity.activityDuration}

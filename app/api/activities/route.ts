@@ -13,7 +13,7 @@ function listParam<T extends string>(value: string | null, allowed: readonly T[]
 /**
  * GET /api/activities?lat=37.765&lng=-122.435&district=CA-11&vibe=arts,social&transport=walk,transit
  *
- * Merges Eventbrite, Ticketmaster and Google Places into the Activity schema,
+ * Merges Eventbrite, Ticketmaster, Google Places and OpenStreetMap into the Activity schema,
  * topping up with curated samples when fewer than 8 live listings come back.
  */
 export async function GET(request: NextRequest) {

@@ -3,7 +3,7 @@ export type CategoryId = "outdoors" | "volunteer" | "study" | "social" | "games"
 export type Coordinates = { lat: number; lng: number };
 
 /** Where a listing came from. "curated" is the bundled sample data. */
-export type ActivitySource = "eventbrite" | "ticketmaster" | "google" | "curated";
+export type ActivitySource = "eventbrite" | "ticketmaster" | "google" | "osm" | "curated";
 export type LiveSourceId = Exclude<ActivitySource, "curated">;
 
 export type Activity = {
