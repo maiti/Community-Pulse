@@ -5,6 +5,7 @@ import { Bus, Car, Check, Clock3, Footprints, Heart, Navigation, X } from "lucid
 import { useAppState } from "@/lib/app-state";
 import { CATEGORIES } from "@/lib/categories";
 import { directionsUrl } from "@/lib/geo";
+import { SOURCE_ATTRIBUTION } from "@/lib/sources";
 import type { Activity } from "@/lib/types";
 import { cn, formatWhen } from "@/lib/utils";
 import { ActivityThumb, CategoryBadge } from "../ActivityCard";
@@ -67,7 +68,10 @@ export function MapPopup({ activity, x, y, paneWidth, paneHeight }: Props) {
 
       <div className="space-y-2.5 p-3.5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-meta text-ink-muted">
-          <span className="truncate">{activity.organization}</span>
+          <span className="truncate">
+            {activity.organization}
+            <span className="text-ink-soft"> · {SOURCE_ATTRIBUTION[activity.source]}</span>
+          </span>
           <span className="inline-flex items-center gap-1 font-medium text-ink">
             <Clock3 className="size-3.5 text-teal" />
             {when.day}

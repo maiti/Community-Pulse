@@ -2,17 +2,21 @@
 
 import { useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Info, Pencil, Play, SearchX, Sparkles, X } from "lucide-react";
+import { LoaderCircle, Pencil, Play, SearchX, Sparkles, X } from "lucide-react";
 import { useAppState } from "@/lib/app-state";
 import { ALL_FILTER, CATEGORIES, CATEGORY_ORDER } from "@/lib/categories";
-import { HOME_PROFILE_ID, useLocationState } from "@/lib/location-state";
+import { useLocationState } from "@/lib/location-state";
 import { buildFeed, describePrefs, hasCriteria } from "@/lib/match";
 import type { CategoryId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ActivityCard } from "./ActivityCard";
+import { ActivityCardSkeleton } from "./ActivityCardSkeleton";
 import { Landscape } from "./decor/Landscape";
 import { Sunburst } from "./decor/Sunburst";
+import { LiveBadge } from "./LiveBadge";
 import { Button } from "./ui/button";
+
+const SKELETON_COUNT = 5;
 
 function PreferencePill() {
   const { prefs, prefsActive, setPrefsActive, openQuiz } = useAppState();
@@ -149,6 +153,7 @@ function CategoryFilters() {
 export function DiscoveryFeed() {
   const {
     feed,
+    feedStatus,
     hoveredId,
     selectedId,
     saved,
@@ -167,6 +172,7 @@ export function DiscoveryFeed() {
   const { profile } = useLocationState();
   const preferredMode = appliedPrefs?.modes[0] ?? "transit";
   const onSelect = useCallback((id: string) => setSelectedId(id), [setSelectedId]);
+  const loading = feedStatus === "loading";
 
   return (
     <div className="flex flex-col">
@@ -188,6 +194,9 @@ export function DiscoveryFeed() {
             <Sunburst className="-mt-3 size-10 shrink-0" />
           </h1>
           <p className="mt-0.5 text-[13px] text-ink-muted">Local places. Real people. A more connected community.</p>
+          <div className="mt-2.5">
+            <LiveBadge />
+          </div>
         </div>
         <PreferencePill />
       </div>
@@ -198,19 +207,43 @@ export function DiscoveryFeed() {
 
       <div className="flex items-center justify-between gap-3 px-4 pb-2 pt-2 text-meta text-ink-muted lg:px-7">
         <p aria-live="polite">
-          <span className="font-bold text-ink">{feed.length}</span> {feed.length === 1 ? "place or event" : "places & events"} in{" "}
-          {profile.code}
-          <span className="text-ink-soft"> · {appliedPrefs ? "best match first" : "nearest first"}</span>
+          {loading ? (
+            <>Finding places &amp; events near {profile.code}…</>
+          ) : (
+            <>
+              <span className="font-bold text-ink">{feed.length}</span> {feed.length === 1 ? "place or event" : "places & events"} in{" "}
+              {profile.code}
+              <span className="text-ink-soft"> · {appliedPrefs ? "best match first" : "nearest first"}</span>
+            </>
+          )}
         </p>
-        {profile.id !== HOME_PROFILE_ID && (
-          <p className="hidden items-center gap-1 text-ink-soft sm:inline-flex" title="The bundled listings are a template, re-centered on this district. Replace data/activities.json with local listings.">
-            <Info className="size-3.5" /> Sample listings
-          </p>
-        )}
+        <AnimatePresence>
+          {feedStatus === "refreshing" && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="inline-flex items-center gap-1 text-ink-soft"
+            >
+              <LoaderCircle className="size-3.5 animate-spin text-teal" /> Updating
+            </motion.p>
+          )}
+        </AnimatePresence>
       </div>
 
-      <ul className="flex flex-col gap-3 px-4 pb-8 lg:px-7">
+      <ul className="flex flex-col gap-3 px-4 pb-8 lg:px-7" aria-busy={loading}>
         <AnimatePresence mode="popLayout" initial={true}>
+          {loading &&
+            Array.from({ length: SKELETON_COUNT }, (_, index) => (
+              <motion.li
+                key={`skeleton-${index}`}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0, transition: { delay: index * 0.05 } }}
+                exit={{ opacity: 0, transition: { duration: 0.12 } }}
+              >
+                <ActivityCardSkeleton index={index} />
+              </motion.li>
+            ))}
           {feed.map(({ activity, match }, index) => (
             <motion.li
               key={activity.id}
@@ -237,7 +270,7 @@ export function DiscoveryFeed() {
           ))}
         </AnimatePresence>
 
-        {feed.length === 0 && (
+        {!loading && feed.length === 0 && (
           <motion.li
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}

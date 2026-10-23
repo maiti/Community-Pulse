@@ -2,8 +2,13 @@ export type CategoryId = "outdoors" | "volunteer" | "study" | "social" | "games"
 
 export type Coordinates = { lat: number; lng: number };
 
+/** Where a listing came from. "curated" is the bundled sample data. */
+export type ActivitySource = "eventbrite" | "ticketmaster" | "google" | "curated";
+export type LiveSourceId = Exclude<ActivitySource, "curated">;
+
 export type Activity = {
   id: string;
+  source: ActivitySource;
   type: "event" | "space";
   /** Primary category: drives badge, pin, and CTA color. */
   category: CategoryId;
@@ -54,4 +59,28 @@ export type QuizPrefs = {
   time: TimeBudget | null;
 };
 
-export type AppView = "discover" | "map" | "activity" | "community" | "resources";
+export type SourceStatus = {
+  id: LiveSourceId;
+  label: string;
+  /** skipped = not configured; error = request failed or was rate limited. */
+  state: "ok" | "empty" | "skipped" | "error";
+  count: number;
+  note?: string;
+};
+
+/** Response body of GET /api/activities. */
+export type FeedResponse = {
+  activities: Activity[];
+  sources: SourceStatus[];
+  liveCount: number;
+  /** True when curated sample listings were merged in to fill a thin feed. */
+  usedFallback: boolean;
+  /** Most common venue city in the live results, for detected locations. */
+  areaLabel: string | null;
+  center: Coordinates;
+  /** Echo of the requested district code, if any. */
+  district?: string | null;
+  generatedAt: string;
+};
+
+export type AppView ="discover" | "map" | "activity" | "community" | "resources";

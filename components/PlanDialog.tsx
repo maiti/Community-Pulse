@@ -7,10 +7,19 @@ import { useAppState } from "@/lib/app-state";
 import { CATEGORIES } from "@/lib/categories";
 import { directionsUrl } from "@/lib/geo";
 import { useLocationState } from "@/lib/location-state";
+import { SOURCE_ATTRIBUTION } from "@/lib/sources";
+import type { ActivitySource } from "@/lib/types";
 import { formatWhen } from "@/lib/utils";
 import { ActivityThumb, CategoryBadge } from "./ActivityCard";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "./ui/dialog";
+
+const LINK_LABELS: Record<ActivitySource, string> = {
+  eventbrite: "Register on Eventbrite",
+  ticketmaster: "Get tickets on Ticketmaster",
+  google: "View on Google Maps",
+  curated: "Organizer page",
+};
 
 /** RSVP for events, "plan a visit" for drop-in spaces. Plans are kept on this device. */
 export function PlanDialog() {
@@ -71,7 +80,16 @@ export function PlanDialog() {
                   </div>
                 </dl>
                 <p className="flex items-center gap-1.5 text-meta text-ink-muted">
-                  <Users className="size-3.5 text-teal" /> Hosted by <span className="font-semibold text-ink">{activity.organization}</span>
+                  <Users className="size-3.5 text-teal" />
+                  {activity.source === "google" ? (
+                    // Places have a type, not a host.
+                    <span className="font-semibold text-ink">{activity.organization}</span>
+                  ) : (
+                    <>
+                      Hosted by <span className="font-semibold text-ink">{activity.organization}</span>
+                    </>
+                  )}
+                  <span className="text-ink-soft">· {SOURCE_ATTRIBUTION[activity.source]}</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <motion.div className="flex-1" whileTap={{ scale: 0.98 }}>
@@ -103,7 +121,7 @@ export function PlanDialog() {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-meta font-semibold text-electric hover:underline"
                 >
-                  Organizer page <ExternalLink className="size-3" />
+                  {LINK_LABELS[activity.source]} <ExternalLink className="size-3" />
                 </a>
               </div>
             </>

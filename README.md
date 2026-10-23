@@ -8,31 +8,55 @@ Built with Next.js 16 (App Router), TypeScript, Tailwind CSS 3, framer-motion, R
 
 ```bash
 npm install
+cp .env.example .env.local   # then fill in the keys you have
 npm run dev        # http://localhost:3000
 npm run build      # production build
 npm run lint
 ```
 
-### Map tiles (optional)
+Every key is optional. The app works with none of them: it falls back to the illustrated map and the curated sample listings.
 
-Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_MAPBOX_TOKEN` to a public Mapbox token to load street tiles. Without a token, or if the token is rejected, the app draws its own illustrated map with pan, zoom, clustering, and the same pins and popups.
+### Environment variables
+
+| Variable | What it enables |
+| --- | --- |
+| `NEXT_PUBLIC_MAPBOX_TOKEN` | Mapbox street tiles. Without it, or if it's rejected, the app draws its own illustrated map. |
+| `TICKETMASTER_API_KEY` | Upcoming arts, music, family, and sports events from the [Ticketmaster Discovery API](https://developer.ticketmaster.com/). |
+| `GOOGLE_PLACES_API_KEY` | Libraries, parks, cafés, bowling alleys, and community centers from Google Places. Enable **Places API (New)** for the key; the legacy Nearby Search is tried only if the new API is refused. |
+| `EVENTBRITE_API_TOKEN` | Eventbrite events. |
+| `EVENTBRITE_ORGANIZER_IDS` | Comma-separated Eventbrite organizer IDs to follow (the number at the end of an `eventbrite.com/o/…` URL). Eventbrite shut down public location search in 2020, so the app tries it and then reads these organizers' upcoming events, keeping the ones near the selected area. |
+
+On Vercel, add the same variables under **Project → Settings → Environment Variables** (or `vercel env add <NAME>`), then redeploy.
+
+## Live data
+
+The browser calls `GET /api/activities?lat=…&lng=…&district=…&vibe=…&transport=…` whenever the location or the quiz picks change.
+
+- **Fan-out:** the route queries Eventbrite, Ticketmaster, and Google Places in parallel with `Promise.allSettled`. A missing key, timeout (8 s), or rate limit only affects that one source, and the response reports each source's status.
+- **One schema:** each adapter in `lib/api/` maps its results into the same `Activity` shape as the sample data. Travel times are estimated from straight-line distance. Photos come from Ticketmaster or Eventbrite when available, otherwise a category photo from Unsplash.
+- **Quiz-aware:** `vibe` limits which kinds of places are searched, and `transport` sets the search radius (2.5 km walking up to 16 km by car).
+- **Teen-safe:** events marked 18+ or 21+, cancelled shows, and upsell listings (VIP packages, parking) are dropped.
+- **Fallback:** fewer than 8 live listings tops the feed up with the curated samples, re-centered on the area. The "Live Feed for …" badge in the feed opens a breakdown of where listings came from.
+- **Caching:** upstream calls use Next's data cache (15 minutes for events, 6 hours for places), and responses carry `s-maxage` so Vercel's CDN serves repeat requests. Coordinates are rounded to about 100 m so nearby users share cache entries.
+
+Google Places requests are billed per call after Google's monthly free tier: one uncached area load makes up to 5 Nearby Search calls.
 
 ## How it fits together
 
 | Path | What it holds |
 | --- | --- |
-| `data/activities.json` | 20 sample listings (events and spaces) |
+| `app/api/activities/route.ts` | Unified live-data endpoint |
+| `lib/api/` | `eventbrite.ts`, `ticketmaster.ts`, `googlePlaces.ts` adapters, plus `feed.ts`, which merges them |
+| `data/activities.json` | 20 curated sample listings (events and spaces) |
+| `lib/use-live-activities.ts` | Client fetch with debounce, stale-while-refreshing, and offline fallback |
 | `lib/location-state.tsx` | Region profiles (districts and cities) plus device-location detection |
 | `lib/app-state.tsx` | Feed filters, quiz picks, saves, RSVPs, map selection |
 | `lib/match.ts` | Search, category filtering, and quiz-based ranking |
-| `components/` | Shell (`Sidebar`, `Header`), `DiscoveryFeed`, `ActivityCard`, `MapView`, `QuizModal`, sheets and dialogs |
+| `components/` | Shell (`Sidebar`, `Header`), `DiscoveryFeed`, `ActivityCard`, `LiveBadge`, `MapView`, `QuizModal`, sheets and dialogs |
 | `components/map/` | Mapbox renderer, illustrated fallback map, shared pin layer |
 
-Saved activities, RSVPs, quiz picks, and the chosen region are stored in `localStorage`, so they stay on the user's device.
+Saved activities, RSVPs, quiz picks, and the chosen region are stored in `localStorage`, so they stay on the user's device. Saved and planned listings are kept as snapshots, so they stay in your list after the live feed moves on.
 
 ### Adding a new community
 
-1. Add a profile to `LOCATION_PROFILES` in `lib/location-state.tsx`: code, name, centroid, and the neighborhoods that border it to the north, south, east, and west.
-2. Replace `data/activities.json` with real local listings using the same schema.
-
-Until real listings are loaded, the sample data is re-centered on whichever region is selected. Distances are kept the same, so travel times still hold, and the feed shows a "Sample listings" note.
+Add a profile to `LOCATION_PROFILES` in `lib/location-state.tsx`: code, name, centroid, and the neighborhoods that border it to the north, south, east, and west. Live sources pick it up automatically.

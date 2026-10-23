@@ -69,6 +69,7 @@ module.exports = {
           "100%": { transform: "translate(-50%, -50%) scale(1.8)", opacity: "0" },
         },
         "sun-spin": { to: { transform: "rotate(360deg)" } },
+        shimmer: { from: { backgroundPosition: "200% 0" }, to: { backgroundPosition: "-200% 0" } },
       },
       animation: {
         "overlay-in": "overlay-in 200ms ease-out",
@@ -79,6 +80,7 @@ module.exports = {
         "dialog-out": "dialog-out 160ms ease-in",
         "halo-pulse": "halo-pulse 1.6s ease-out infinite",
         "sun-spin": "sun-spin 40s linear infinite",
+        shimmer: "shimmer 1.6s linear infinite",
       },
     },
   },

@@ -18,9 +18,8 @@ const PAD_Y = 84;
 const MIN_ZOOM = 0.6;
 const MAX_ZOOM = 5;
 
-/** World space: activities occupy roughly the middle 400 units of a 1000-unit square. */
-function buildWorld(activities: Activity[]) {
-  const points = activities.map((a) => a.location.coordinates);
+/** World space: the frame occupies roughly the middle 400 units of a 1000-unit square. */
+function buildWorld(points: Coordinates[]) {
   const b = boundsOf(points);
   const center = { lat: (b.north + b.south) / 2, lng: (b.east + b.west) / 2 };
   const span = offsetKm({ lat: b.south, lng: b.west }, { lat: b.north, lng: b.east });
@@ -103,18 +102,19 @@ function buildDecor(seedKey: string, world: World) {
 }
 
 type Props = {
-  allActivities: Activity[];
+  /** Points the default view should fit: every listing in the district. */
+  frame: Coordinates[];
   activities: Activity[];
   seedKey: string;
   onController: (c: MapController | null) => void;
 };
 
-export function FallbackMap({ allActivities, activities, seedKey, onController }: Props) {
+export function FallbackMap({ frame, activities, seedKey, onController }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const { width, height } = useElementSize(ref);
   const { selectedId, setSelectedId, byId } = useAppState();
 
-  const world = useMemo(() => buildWorld(allActivities), [allActivities]);
+  const world = useMemo(() => buildWorld(frame), [frame]);
   const decor = useMemo(() => buildDecor(seedKey, world), [seedKey, world]);
 
   const [view, setView] = useState<View>({ cx: 500, cy: 500, zoom: 1 });

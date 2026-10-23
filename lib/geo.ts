@@ -1,4 +1,4 @@
-import type { Activity, Coordinates, LocationProfile, TravelMode } from "./types";
+import type { Activity, Coordinates, TravelMode } from "./types";
 
 const KM_PER_DEG_LAT = 110.574;
 const kmPerDegLng = (lat: number) => 111.32 * Math.cos((lat * Math.PI) / 180);
@@ -33,17 +33,41 @@ export function addKm(origin: Coordinates, east: number, north: number): Coordin
 /**
  * The bundled dataset is a template authored around one centroid. Re-centering
  * keeps every listing's real-world distance (so travel times stay truthful)
- * while placing it inside whichever district is selected.
+ * while placing it around whichever centre is active.
  */
-export function localizeActivities(activities: Activity[], profile: LocationProfile): Activity[] {
+export function localizeActivities(activities: Activity[], center: Coordinates): Activity[] {
   const origin = centroidOf(activities.map((a) => a.location.coordinates));
   return activities.map((a) => {
     const { east, north } = offsetKm(origin, a.location.coordinates);
     return {
       ...a,
-      location: { ...a.location, coordinates: addKm(profile.centroid, east, north) },
+      location: { ...a.location, coordinates: addKm(center, east, north) },
     };
   });
+}
+
+/**
+ * Straight-line travel estimates for listings that arrive without routing
+ * data. Distances get a 1.3× street-grid detour factor.
+ */
+export function estimateTravel(
+  from: Coordinates,
+  to: Coordinates,
+): Pick<Activity, "driveTimeMinutes" | "walkTimeMinutes" | "transitInfo"> {
+  const km = haversineKm(from, to) * 1.3;
+  // Below ~0.8 km, waiting for a bus takes longer than walking.
+  const hasPublicTransit = km > 0.8;
+  return {
+    walkTimeMinutes: Math.max(2, Math.round((km / 4.8) * 60)),
+    driveTimeMinutes: Math.max(3, Math.round((km / 28) * 60 + 3)),
+    transitInfo: {
+      hasPublicTransit,
+      estimatedTransitMinutes: hasPublicTransit ? Math.round((km / 15) * 60 + 8) : null,
+      transitNotes: hasPublicTransit
+        ? "Estimated from distance. Open Directions for live transit times."
+        : "Close enough to walk.",
+    },
+  };
 }
 
 export type Bounds = { west: number; south: number; east: number; north: number };

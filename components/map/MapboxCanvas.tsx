@@ -11,7 +11,8 @@ import { PinLayer } from "./PinLayer";
 
 type Props = {
   token: string;
-  allActivities: Activity[];
+  /** Points the default view should fit: every listing in the district. */
+  frame: Coordinates[];
   activities: Activity[];
   onController: (c: MapController | null) => void;
   onBearing: (deg: number) => void;
@@ -21,15 +22,15 @@ type Props = {
 
 const FIT_PADDING = { top: 90, bottom: 110, left: 70, right: 70 };
 
-function toBounds(list: Activity[]): LngLatBoundsLike {
-  const b = boundsOf(list.map((a) => a.location.coordinates));
+function toBounds(points: Coordinates[]): LngLatBoundsLike {
+  const b = boundsOf(points);
   return [
     [b.west, b.south],
     [b.east, b.north],
   ];
 }
 
-export function MapboxCanvas({ token, allActivities, activities, onController, onBearing, onFail }: Props) {
+export function MapboxCanvas({ token, frame, activities, onController, onBearing, onFail }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<MapboxMap | null>(null);
@@ -37,7 +38,7 @@ export function MapboxCanvas({ token, allActivities, activities, onController, o
   const [, setFrame] = useState(0);
   const { selectedId, setSelectedId, byId } = useAppState();
 
-  const initialBounds = useRef(toBounds(allActivities));
+  const initialBounds = useRef(toBounds(frame));
   const callbacks = useRef({ onBearing, onFail, setSelectedId });
   useEffect(() => {
     callbacks.current = { onBearing, onFail, setSelectedId };
@@ -85,8 +86,8 @@ export function MapboxCanvas({ token, allActivities, activities, onController, o
 
   // New district: glide to its activities.
   useEffect(() => {
-    map?.fitBounds(toBounds(allActivities), { padding: FIT_PADDING, duration: 1400 });
-  }, [allActivities, map]);
+    map?.fitBounds(toBounds(frame), { padding: FIT_PADDING, duration: 1400 });
+  }, [frame, map]);
 
   useEffect(() => {
     if (!map || !selectedId) return;
@@ -104,7 +105,7 @@ export function MapboxCanvas({ token, allActivities, activities, onController, o
   const fitActivities = useCallback(
     (list: Activity[]) => {
       if (!list.length) return;
-      map?.fitBounds(toBounds(list), { padding: 90, maxZoom: 16, duration: 700 });
+      map?.fitBounds(toBounds(list.map((a) => a.location.coordinates)), { padding: 90, maxZoom: 16, duration: 700 });
     },
     [map],
   );
@@ -115,7 +116,7 @@ export function MapboxCanvas({ token, allActivities, activities, onController, o
         if (map) map.easeTo({ zoom: map.getZoom() + Math.log2(f), duration: 300 });
       },
       recenter: () => {
-        map?.fitBounds(toBounds(allActivities), {
+        map?.fitBounds(toBounds(frame), {
           padding: FIT_PADDING,
           bearing: 0,
           pitch: 0,
@@ -125,7 +126,7 @@ export function MapboxCanvas({ token, allActivities, activities, onController, o
       fitActivities,
     });
     return () => onController(null);
-  }, [onController, allActivities, fitActivities, map]);
+  }, [onController, frame, fitActivities, map]);
 
   const project = (c: Coordinates) => {
     if (!map) return { x: -999, y: -999 };

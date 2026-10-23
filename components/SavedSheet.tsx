@@ -68,8 +68,8 @@ export function SavedItem({ activity, onOpen }: { activity: Activity; onOpen: ()
 }
 
 export function SavedSheet() {
-  const { savedOpen, setSavedOpen, saved, byId, setSelectedId, setView } = useAppState();
-  const items = saved.map((id) => byId.get(id)).filter((a): a is Activity => !!a);
+  const { savedOpen, setSavedOpen, saved, findActivity, setSelectedId, setView } = useAppState();
+  const items = saved.map(findActivity).filter((a): a is Activity => !!a);
 
   return (
     <Sheet open={savedOpen} onOpenChange={setSavedOpen}>

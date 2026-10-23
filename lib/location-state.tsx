@@ -68,8 +68,6 @@ export const LOCATION_PROFILES: LocationProfile[] = [
 ];
 
 export const DEFAULT_PROFILE_ID = "ca-11";
-/** The district the bundled template data was authored around. */
-export const HOME_PROFILE_ID = "ca-11";
 
 const profileIdStore = createPersistentStore<string>("cp:location", DEFAULT_PROFILE_ID);
 const detectedStore = createPersistentStore<Coordinates | null>("cp:detected", null);

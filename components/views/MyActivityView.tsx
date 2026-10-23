@@ -15,12 +15,12 @@ function EmptyNote({ children }: { children: React.ReactNode }) {
 }
 
 export function MyActivityView() {
-  const { plans, saved, byId, prefs, openQuiz, setSelectedId, setView } = useAppState();
+  const { plans, saved, findActivity, prefs, openQuiz, setSelectedId, setView } = useAppState();
   const going = Object.entries(plans)
     .sort(([, a], [, b]) => a.localeCompare(b))
-    .map(([id]) => byId.get(id))
+    .map(([id]) => findActivity(id))
     .filter((a): a is Activity => !!a);
-  const savedItems = saved.map((id) => byId.get(id)).filter((a): a is Activity => !!a);
+  const savedItems = saved.map(findActivity).filter((a): a is Activity => !!a);
   const open = (id: string) => {
     setView("discover");
     setSelectedId(id);
