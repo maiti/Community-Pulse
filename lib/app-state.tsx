@@ -11,7 +11,7 @@ import {
 } from "react";
 import { CURATED_BY_ID } from "./curated";
 import { useLocationState } from "./location-state";
-import { buildFeed, hasCriteria, type FeedItem } from "./match";
+import { buildFeed, hasCriteria, type FeedItem, type WhenFilter } from "./match";
 import { createPersistentStore, usePersistentStore } from "./persistent-store";
 import type { Activity, AppView, CategoryId, FeedResponse, QuizPrefs } from "./types";
 import { useLiveActivities, type FeedStatus } from "./use-live-activities";
@@ -41,6 +41,9 @@ type AppState = {
   setCategory: (c: CategoryId | "all") => void;
   query: string;
   setQuery: (q: string) => void;
+  /** Narrows events to today or this weekend; spaces always show. */
+  when: WhenFilter;
+  setWhen: (w: WhenFilter) => void;
 
   prefs: QuizPrefs | null;
   setPrefs: (p: QuizPrefs | null) => void;
@@ -88,6 +91,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const [category, setCategory] = useState<CategoryId | "all">("all");
   const [query, setQuery] = useState("");
+  const [when, setWhen] = useState<WhenFilter>("any");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [view, setView] = useState<AppView>("discover");
@@ -105,8 +109,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     [byId, library],
   );
   const feed = useMemo(
-    () => buildFeed(activities, { category, query, prefs: appliedPrefs }),
-    [activities, category, query, appliedPrefs],
+    () => buildFeed(activities, { category, query, prefs: appliedPrefs, when }),
+    [activities, category, query, appliedPrefs, when],
   );
 
   // Keep a snapshot while an item is saved or planned; drop it once it's neither.
@@ -168,6 +172,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     setCategory,
     query,
     setQuery,
+    when,
+    setWhen,
     prefs,
     setPrefs,
     prefsActive,

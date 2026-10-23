@@ -18,6 +18,7 @@ import { useAppState } from "@/lib/app-state";
 import { addKm, boundsOf } from "@/lib/geo";
 import { useLocationState } from "@/lib/location-state";
 import type { Activity, Coordinates } from "@/lib/types";
+import { useDistrictBoundary } from "@/lib/use-district-boundary";
 import { cn } from "@/lib/utils";
 import type { MapController } from "./map/controller";
 import { FallbackMap } from "./map/FallbackMap";
@@ -78,6 +79,7 @@ export function MapView({ className }: { className?: string }) {
   const useMapbox = !!MAPBOX_TOKEN && !mapboxFailed;
 
   const frame = useFrame(activities, profile.centroid);
+  const boundary = useDistrictBoundary(profile.code);
   const visible = useMemo(() => feed.map((f) => f.activity), [feed]);
   const onController = useCallback((c: MapController | null) => setController(c), []);
   const onFail = useCallback(() => setMapboxFailed(true), []);
@@ -89,6 +91,7 @@ export function MapView({ className }: { className?: string }) {
           token={MAPBOX_TOKEN}
           frame={frame}
           activities={visible}
+          boundary={boundary}
           onController={onController}
           onBearing={setBearing}
           onFail={onFail}
@@ -98,6 +101,7 @@ export function MapView({ className }: { className?: string }) {
           key={profile.id}
           frame={frame}
           activities={visible}
+          boundary={boundary}
           seedKey={profile.id}
           onController={onController}
         />

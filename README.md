@@ -20,7 +20,7 @@ Every key is optional. The app works with none of them: it falls back to the ill
 
 | Variable | What it enables |
 | --- | --- |
-| `NEXT_PUBLIC_MAPBOX_TOKEN` | Mapbox street tiles. Without it, or if it's rejected, the app draws its own illustrated map. |
+| `NEXT_PUBLIC_MAPBOX_TOKEN` | Mapbox street tiles, plus small map snapshots used as thumbnails for listings that have no photo of their own ([Static Images API](https://docs.mapbox.com/api/maps/static-images/), free up to 50,000 a month). Without it, or if it's rejected, the app draws its own illustrated map and falls back to category photos. |
 | `TICKETMASTER_API_KEY` | Upcoming arts, music, family, and sports events from the [Ticketmaster Discovery API](https://developer.ticketmaster.com/), 45 days ahead. A separate Family search runs alongside the general one so all-ages events aren't crowded out by club shows. |
 | `GOOGLE_PLACES_API_KEY` | Libraries, parks, cafés, bowling alleys, community centers, museums, art galleries, arcades, skate parks, pools, and botanical gardens (Nearby Search), plus food banks, youth centers, community gardens, volunteer centers, climbing gyms, and makerspaces (Text Search) from Google Places. Enable **Places API (New)** for the key; the legacy Nearby Search is tried only if the new API is refused. |
 | `EVENTBRITE_API_TOKEN` | Eventbrite events. |
@@ -35,7 +35,8 @@ On Vercel, add the same variables under **Project → Settings → Environment V
 The browser calls `GET /api/activities?lat=…&lng=…&district=…&vibe=…&transport=…` whenever the location or the quiz picks change.
 
 - **Fan-out:** the route queries Eventbrite, Ticketmaster, Google Places, and OpenStreetMap in parallel with `Promise.allSettled`. A missing key, timeout (8 s), or rate limit only affects that one source, and the response reports each source's status.
-- **One schema:** each adapter in `lib/api/` maps its results into the same `Activity` shape as the sample data. Travel times are estimated from straight-line distance. Photos come from Ticketmaster or Eventbrite when available, otherwise a category photo from Unsplash.
+- **One schema:** each adapter in `lib/api/` maps its results into the same `Activity` shape as the sample data. Travel times are estimated from straight-line distance. Photos come from Ticketmaster or Eventbrite when available. Google and OpenStreetMap places, and events without a photo, show a Mapbox map snapshot of their street corner instead, so two places never share the same picture. The browser loads it straight from Mapbox, and if it fails the card falls back to a category photo from Unsplash. The snapshots hide Mapbox's own credit, so the feed shows one line of attribution under the list.
+- **When:** "Today" and "This weekend" (Friday 5 PM through Sunday) narrow events by start date and hide ones that have already ended. Drop-in spaces stay in the feed, since they're open whenever you go.
 - **Quiz-aware:** `vibe` limits which kinds of places are searched, and `transport` sets the search radius (2.5 km walking up to 16 km by car).
 - **Teen-safe:** events marked 18+ or 21+, cancelled shows, and upsell listings (VIP packages, parking) are dropped. Ticketmaster music, comedy, and uncategorized events are kept only when the listing says all ages (or a minimum age of 14 or under), because club shows are often 21+ without being flagged. Campus libraries are left out, since they usually need a student ID.
 - **Volunteer spots:** Google has no place type for food banks, youth centers, or community gardens, so those come from Text Search, with a name check and a radius check on every hit.
@@ -49,12 +50,15 @@ Google Places requests are billed per call after Google's monthly free tier: one
 
 `GET /api/district?lat=…&lng=…` asks the free [US Census Geocoder](https://geocoding.geo.census.gov/geocoder/) which congressional district contains a point and returns `{ district: { code: "CA-11", label: "California's 11th Congressional District", state: "CA" } }`, or `{ district: null }` outside the US. "Use my current location" calls it, so the header shows your real district instead of "Near Me". No key is needed, and answers are cached for a week.
 
+`GET /api/district/boundary?code=CA-11` returns the district's outline as a GeoJSON MultiPolygon from [Census TIGERweb](https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Legislative/MapServer), simplified to about 50 m. The layer ID changes with each new Congress, so the newest "Nth Congressional Districts" layer is looked up by name. Both maps draw the outline as a dashed teal line: the Mapbox map adds it as a layer under the street labels, and the illustrated map uses it in place of its hand-drawn blob. Non-congressional regions ("Ward 4", "Near Me") and failed lookups keep the illustrated blob. Outlines are cached for a week.
+
 ## How it fits together
 
 | Path | What it holds |
 | --- | --- |
 | `app/api/activities/route.ts` | Unified live-data endpoint |
 | `app/api/district/route.ts` | Congressional district for a point (`lib/api/district.ts` parses the Census response) |
+| `app/api/district/boundary/route.ts` | District outline from Census TIGERweb (`lib/use-district-boundary.ts` loads it in the browser) |
 | `lib/api/` | `eventbrite.ts`, `ticketmaster.ts`, `googlePlaces.ts`, `openStreetMap.ts` adapters, plus `feed.ts`, which merges them |
 | `data/activities.json` | 20 curated sample listings (events and spaces) |
 | `lib/use-live-activities.ts` | Client fetch with debounce, stale-while-refreshing, and offline fallback |

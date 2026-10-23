@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { LngLatBoundsLike, Map as MapboxMap } from "mapbox-gl";
+import type { GeoJSONSource, LngLatBoundsLike, Map as MapboxMap } from "mapbox-gl";
+import type { DistrictGeometry } from "@/lib/api/district";
 import { useAppState } from "@/lib/app-state";
 import { boundsOf } from "@/lib/geo";
 import type { Activity, Coordinates } from "@/lib/types";
@@ -14,6 +15,8 @@ type Props = {
   /** Points the default view should fit: every listing in the district. */
   frame: Coordinates[];
   activities: Activity[];
+  /** Real district outline from the Census, when there is one. */
+  boundary: DistrictGeometry | null;
   onController: (c: MapController | null) => void;
   onBearing: (deg: number) => void;
   /** Called when tiles can't load (bad token, no WebGL) so the illustrated map can take over. */
@@ -21,6 +24,8 @@ type Props = {
 };
 
 const FIT_PADDING = { top: 90, bottom: 110, left: 70, right: 70 };
+const BOUNDARY_SOURCE = "district-boundary";
+const EMPTY = { type: "FeatureCollection" as const, features: [] };
 
 function toBounds(points: Coordinates[]): LngLatBoundsLike {
   const b = boundsOf(points);
@@ -30,7 +35,7 @@ function toBounds(points: Coordinates[]): LngLatBoundsLike {
   ];
 }
 
-export function MapboxCanvas({ token, frame, activities, onController, onBearing, onFail }: Props) {
+export function MapboxCanvas({ token, frame, activities, boundary, onController, onBearing, onFail }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<MapboxMap | null>(null);
@@ -83,6 +88,33 @@ export function MapboxCanvas({ token, frame, activities, onController, onBearing
   useEffect(() => {
     map?.resize();
   }, [map, width, height]);
+
+  // District outline: a faint wash plus the same dashed teal line as the illustrated map.
+  useEffect(() => {
+    if (!map) return;
+    const data = boundary ? { type: "Feature" as const, properties: {}, geometry: boundary } : EMPTY;
+    const source = map.getSource(BOUNDARY_SOURCE) as GeoJSONSource | undefined;
+    if (source) {
+      source.setData(data);
+      return;
+    }
+    map.addSource(BOUNDARY_SOURCE, { type: "geojson", data });
+    // Below the first label layer, so street and place names stay readable.
+    const beforeId = map.getStyle()?.layers?.find((l) => l.type === "symbol")?.id;
+    map.addLayer(
+      { id: "district-fill", type: "fill", source: BOUNDARY_SOURCE, paint: { "fill-color": "#009C9F", "fill-opacity": 0.06 } },
+      beforeId,
+    );
+    map.addLayer(
+      {
+        id: "district-line",
+        type: "line",
+        source: BOUNDARY_SOURCE,
+        paint: { "line-color": "#009C9F", "line-width": 2, "line-opacity": 0.75, "line-dasharray": [3.5, 3] },
+      },
+      beforeId,
+    );
+  }, [map, boundary]);
 
   // New district: glide to its activities.
   useEffect(() => {

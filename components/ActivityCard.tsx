@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bus, Car, Check, Clock3, Footprints, Heart, Navigation, Sparkles } from "lucide-react";
@@ -8,6 +8,7 @@ import { CATEGORIES } from "@/lib/categories";
 import { directionsUrl } from "@/lib/geo";
 import type { MatchResult } from "@/lib/match";
 import { isPlaceSource, SOURCE_ATTRIBUTION } from "@/lib/sources";
+import { staticMapUrl } from "@/lib/static-map";
 import type { Activity, TravelMode } from "@/lib/types";
 import { cn, formatWhen } from "@/lib/utils";
 
@@ -27,23 +28,32 @@ type Props = {
 };
 
 export function ActivityThumb({ activity, className, sizes }: { activity: Activity; className?: string; sizes: string }) {
-  const [failed, setFailed] = useState(false);
+  // Map snapshot first (for listings without their own photo), then the photo, then an icon tile.
+  const sources = useMemo(
+    () => [staticMapUrl(activity), activity.imageUrl].filter((src): src is string => !!src),
+    [activity],
+  );
+  const [failures, setFailures] = useState(0);
+  const src = sources[failures];
   const meta = CATEGORIES[activity.category];
   const Icon = meta.icon;
   return (
     <div className={cn("relative overflow-hidden", className)} style={{ background: meta.pastel }}>
-      {failed ? (
+      {!src ? (
         <div className="grid size-full place-items-center bg-topo-navy bg-topo">
           <Icon className="size-8" style={{ color: meta.color }} strokeWidth={1.5} />
         </div>
       ) : (
         <Image
-          src={activity.imageUrl}
+          key={src}
+          src={src}
           alt=""
           fill
           sizes={sizes}
+          // Mapbox serves these ready-sized; sending them through the optimizer would also drop the referrer a URL-restricted token needs.
+          unoptimized={src !== activity.imageUrl}
           className="object-cover transition-transform duration-500 group-hover/card:scale-[1.06]"
-          onError={() => setFailed(true)}
+          onError={() => setFailures((n) => n + 1)}
         />
       )}
     </div>
