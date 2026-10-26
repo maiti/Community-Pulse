@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { animate, type AnimationPlaybackControls } from "framer-motion";
+import type { DistrictGeometry } from "@/lib/api/district";
 import { useAppState } from "@/lib/app-state";
 import { boundsOf, centroidOf, offsetKm } from "@/lib/geo";
 import { contourRings, meander } from "@/lib/topo";
@@ -101,21 +102,40 @@ function buildDecor(seedKey: string, world: World) {
   return { angle, grid: grid.join(""), arterials, highway, water, waterRotation, river, parks, topo, district };
 }
 
+/** The real district outline in world units; evenodd fill leaves holes open. */
+function boundaryPath(boundary: DistrictGeometry, world: World) {
+  return boundary.coordinates
+    .flat()
+    .map(
+      (ring) =>
+        ring
+          .map(([lng, lat], i) => {
+            const p = world.toWorld({ lat, lng });
+            return `${i ? "L" : "M"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
+          })
+          .join("") + "Z",
+    )
+    .join("");
+}
+
 type Props = {
   /** Points the default view should fit: every listing in the district. */
   frame: Coordinates[];
   activities: Activity[];
+  /** Real district outline from the Census; a hand-drawn blob stands in without one. */
+  boundary: DistrictGeometry | null;
   seedKey: string;
   onController: (c: MapController | null) => void;
 };
 
-export function FallbackMap({ frame, activities, seedKey, onController }: Props) {
+export function FallbackMap({ frame, activities, boundary, seedKey, onController }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const { width, height } = useElementSize(ref);
   const { selectedId, setSelectedId, byId } = useAppState();
 
   const world = useMemo(() => buildWorld(frame), [frame]);
   const decor = useMemo(() => buildDecor(seedKey, world), [seedKey, world]);
+  const district = useMemo(() => (boundary ? boundaryPath(boundary, world) : decor.district), [boundary, world, decor]);
 
   const [view, setView] = useState<View>({ cx: 500, cy: 500, zoom: 1 });
   const viewRef = useRef(view);
@@ -273,9 +293,9 @@ export function FallbackMap({ frame, activities, seedKey, onController }: Props)
               <path d={decor.water} fill="#C9E6EE" />
               <path d={decor.water} fill="none" stroke="#A9D6E2" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
             </g>
-            <path d={decor.district} fill="#FFFFFF" fillOpacity={0.32} />
+            <path d={district} fill="#FFFFFF" fillOpacity={0.32} fillRule="evenodd" />
             <path
-              d={decor.district}
+              d={district}
               fill="none"
               stroke="#009C9F"
               strokeWidth={2}

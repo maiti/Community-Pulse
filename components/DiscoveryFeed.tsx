@@ -2,11 +2,11 @@
 
 import { useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { LoaderCircle, Pencil, Play, SearchX, Sparkles, X } from "lucide-react";
+import { CalendarDays, LoaderCircle, Pencil, Play, SearchX, Sparkles, X } from "lucide-react";
 import { useAppState } from "@/lib/app-state";
 import { ALL_FILTER, CATEGORIES, CATEGORY_ORDER } from "@/lib/categories";
 import { useLocationState } from "@/lib/location-state";
-import { buildFeed, describePrefs, hasCriteria } from "@/lib/match";
+import { buildFeed, describePrefs, hasCriteria, matchesWhen, type WhenFilter } from "@/lib/match";
 import type { CategoryId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ActivityCard } from "./ActivityCard";
@@ -86,17 +86,79 @@ function PreferencePill() {
   );
 }
 
+const WHEN_OPTIONS: { id: WhenFilter; label: string }[] = [
+  { id: "any", label: "Any time" },
+  { id: "today", label: "Today" },
+  { id: "weekend", label: "This weekend" },
+];
+
+function WhenFilters() {
+  const { when, setWhen, activities, category, query, appliedPrefs } = useAppState();
+
+  // Event counts for each window, so it's clear what "Today" adds before picking it.
+  const counts = useMemo(() => {
+    const events = buildFeed(activities, { category, query, prefs: appliedPrefs, when: "any" })
+      .map(({ activity }) => activity)
+      .filter((a) => a.type === "event");
+    const now = new Date();
+    return {
+      today: events.filter((a) => matchesWhen(a, "today", now)).length,
+      weekend: events.filter((a) => matchesWhen(a, "weekend", now)).length,
+    };
+  }, [activities, category, query, appliedPrefs]);
+
+  return (
+    <div
+      role="group"
+      aria-label="When"
+      title="Events happening then, plus drop-in places"
+      className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-line bg-white p-0.5"
+    >
+      <CalendarDays className="ml-1.5 mr-0.5 size-3.5 text-teal" aria-hidden="true" />
+      {WHEN_OPTIONS.map(({ id, label }) => {
+        const active = when === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setWhen(id)}
+            aria-pressed={active}
+            className={cn(
+              "relative inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-micro font-semibold transition-colors",
+              active ? "text-white" : "text-navy hover:bg-canvas",
+            )}
+          >
+            {active && (
+              <motion.span
+                layoutId="when-pill"
+                className="absolute inset-0 rounded-full bg-navy"
+                transition={{ type: "spring", stiffness: 420, damping: 32 }}
+              />
+            )}
+            <span className="relative">{label}</span>
+            {id !== "any" && (
+              <span className={cn("relative text-[10px] font-bold", active ? "text-white/70" : "text-ink-soft")}>
+                {counts[id]}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function CategoryFilters() {
-  const { category, setCategory, activities, query, appliedPrefs } = useAppState();
+  const { category, setCategory, activities, query, appliedPrefs, when } = useAppState();
 
   const counts = useMemo(() => {
-    const items = buildFeed(activities, { category: "all", query, prefs: appliedPrefs });
+    const items = buildFeed(activities, { category: "all", query, prefs: appliedPrefs, when });
     const out: Record<string, number> = { all: items.length };
     for (const id of CATEGORY_ORDER) {
       out[id] = items.filter(({ activity }) => activity.category === id || activity.vibeCategories.includes(id)).length;
     }
     return out;
-  }, [activities, query, appliedPrefs]);
+  }, [activities, query, appliedPrefs, when]);
 
   const filters: { id: CategoryId | "all"; label: string; icon: typeof ALL_FILTER.icon; color: string; pastel: string; onColor: string }[] = [
     { ...ALL_FILTER, onColor: "#FFFFFF" },
@@ -161,8 +223,10 @@ export function DiscoveryFeed() {
     appliedPrefs,
     query,
     category,
+    when,
     setQuery,
     setCategory,
+    setWhen,
     setPrefsActive,
     setHoveredId,
     setSelectedId,
@@ -205,7 +269,7 @@ export function DiscoveryFeed() {
         <CategoryFilters />
       </div>
 
-      <div className="flex items-center justify-between gap-3 px-4 pb-2 pt-2 text-meta text-ink-muted lg:px-7">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 pb-2 pt-2 text-meta text-ink-muted lg:px-7">
         <p aria-live="polite">
           {loading ? (
             <>Finding places &amp; events near {profile.code}…</>
@@ -217,18 +281,21 @@ export function DiscoveryFeed() {
             </>
           )}
         </p>
-        <AnimatePresence>
-          {feedStatus === "refreshing" && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="inline-flex items-center gap-1 text-ink-soft"
-            >
-              <LoaderCircle className="size-3.5 animate-spin text-teal" /> Updating
-            </motion.p>
-          )}
-        </AnimatePresence>
+        <div className="ml-auto flex items-center gap-3">
+          <AnimatePresence>
+            {feedStatus === "refreshing" && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="inline-flex items-center gap-1 text-ink-soft"
+              >
+                <LoaderCircle className="size-3.5 animate-spin text-teal" /> Updating
+              </motion.p>
+            )}
+          </AnimatePresence>
+          <WhenFilters />
+        </div>
       </div>
 
       <ul className="flex flex-col gap-3 px-4 pb-8 lg:px-7" aria-busy={loading}>
@@ -290,6 +357,11 @@ export function DiscoveryFeed() {
               {category !== "all" && (
                 <Button variant="outline" size="sm" onClick={() => setCategory("all")}>
                   All categories
+                </Button>
+              )}
+              {when !== "any" && (
+                <Button variant="outline" size="sm" onClick={() => setWhen("any")}>
+                  Any time
                 </Button>
               )}
               {appliedPrefs && (

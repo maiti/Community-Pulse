@@ -52,7 +52,7 @@ export function MapPopup({ activity, x, y, paneWidth, paneHeight }: Props) {
       onClick={(e) => e.stopPropagation()}
     >
       <div className="relative h-[118px]">
-        <ActivityThumb activity={activity} sizes="350px" className="absolute inset-0" />
+        <ActivityThumb activity={activity} className="absolute inset-0" />
         <div className="absolute inset-0 bg-gradient-to-t from-navy/75 via-navy/10 to-transparent" />
         <CategoryBadge activity={activity} className="absolute left-3 top-3 shadow-card" />
         <button

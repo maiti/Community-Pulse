@@ -90,3 +90,62 @@ export async function lookupDistrict({ lat, lng }: Coordinates): Promise<Distric
   const data = await fetchJson<CensusResponse>("Census Geocoder", `${ENDPOINT}?${params}`, { revalidate: 7 * 24 * 60 * 60 });
   return parseDistrict(data);
 }
+
+const TIGERWEB = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Legislative/MapServer";
+const WEEK = 7 * 24 * 60 * 60;
+
+/** [lng, lat] rings: the first ring of each polygon is its outline, any others are holes. */
+export type DistrictGeometry = { type: "MultiPolygon"; coordinates: [number, number][][][] };
+
+type GeoJsonGeometry =
+  | { type: "Polygon"; coordinates: [number, number][][] }
+  | { type: "MultiPolygon"; coordinates: [number, number][][][] };
+type FeatureCollection = { features?: { geometry?: GeoJsonGeometry | null }[] };
+type ServiceInfo = { layers?: { id: number; name: string }[] };
+
+/** "CA-11" → SQL filter for that district in TIGERweb; null for codes that aren't congressional. */
+export function boundaryFilter(code: string): string | null {
+  const match = /^([A-Z]{2})-(\d{2}|AL)$/.exec(code);
+  const fips = match && Object.keys(STATES).find((k) => STATES[k][0] === match[1]);
+  if (!match || !fips) return null;
+  // At-large seats (00, or 98 for delegates) are the only district in their state.
+  return match[2] === "AL" ? `STATE='${fips}'` : `GEOID='${fips}${match[2]}'`;
+}
+
+/**
+ * The layer id changes when a new Congress is seated, so find it by name
+ * ("119th Congressional Districts") rather than hardcoding it.
+ */
+async function congressLayerId() {
+  const info = await fetchJson<ServiceInfo>("Census TIGERweb", `${TIGERWEB}?f=json`, { revalidate: WEEK });
+  const layer = (info.layers ?? [])
+    .map((l) => ({ id: l.id, congress: Number(/^(\d+)(?:st|nd|rd|th) Congressional Districts$/i.exec(l.name.trim())?.[1]) }))
+    .filter((l) => Number.isFinite(l.congress))
+    .sort((a, b) => b.congress - a.congress)[0];
+  if (!layer) throw new Error("Census TIGERweb: no congressional district layer");
+  return layer.id;
+}
+
+/** The outline of a congressional district from Census TIGERweb (free, no key), or null if unknown. */
+export async function fetchDistrictBoundary(code: string): Promise<DistrictGeometry | null> {
+  const where = boundaryFilter(code);
+  if (!where) return null;
+  const params = new URLSearchParams({
+    where,
+    outFields: "GEOID",
+    returnGeometry: "true",
+    outSR: "4326",
+    // Simplify to ~50 m and 5 decimals: plenty for an outline, and keeps big districts small.
+    maxAllowableOffset: "0.0005",
+    geometryPrecision: "5",
+    f: "geojson",
+  });
+  const layer = await congressLayerId();
+  const data = await fetchJson<FeatureCollection>("Census TIGERweb", `${TIGERWEB}/${layer}/query?${params}`, {
+    revalidate: WEEK,
+  });
+  const coordinates = (data.features ?? []).flatMap(({ geometry }) =>
+    geometry?.type === "Polygon" ? [geometry.coordinates] : geometry?.type === "MultiPolygon" ? geometry.coordinates : [],
+  );
+  return coordinates.length ? { type: "MultiPolygon", coordinates } : null;
+}
