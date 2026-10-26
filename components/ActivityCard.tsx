@@ -1,14 +1,12 @@
 "use client";
 
-import { memo, useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
+import { memo, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bus, Car, Check, Clock3, Footprints, Heart, Navigation, Sparkles } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
 import { directionsUrl } from "@/lib/geo";
 import type { MatchResult } from "@/lib/match";
 import { isPlaceSource, SOURCE_ATTRIBUTION } from "@/lib/sources";
-import { staticMapUrl } from "@/lib/static-map";
 import type { Activity, TravelMode } from "@/lib/types";
 import { cn, formatWhen } from "@/lib/utils";
 
@@ -27,35 +25,21 @@ type Props = {
   onPlan: (activity: Activity) => void;
 };
 
-export function ActivityThumb({ activity, className, sizes }: { activity: Activity; className?: string; sizes: string }) {
-  // Map snapshot first (for listings without their own photo), then the photo, then an icon tile.
-  const sources = useMemo(
-    () => [staticMapUrl(activity), activity.imageUrl].filter((src): src is string => !!src),
-    [activity],
-  );
-  const [failures, setFailures] = useState(0);
-  const src = sources[failures];
+/** Category icon tile. Live sources rarely have a photo of the actual place, so none is shown. */
+export function ActivityThumb({ activity, className }: { activity: Activity; className?: string }) {
   const meta = CATEGORIES[activity.category];
   const Icon = meta.icon;
   return (
-    <div className={cn("relative overflow-hidden", className)} style={{ background: meta.pastel }}>
-      {!src ? (
-        <div className="grid size-full place-items-center bg-topo-navy bg-topo">
-          <Icon className="size-8" style={{ color: meta.color }} strokeWidth={1.5} />
-        </div>
-      ) : (
-        <Image
-          key={src}
-          src={src}
-          alt=""
-          fill
-          sizes={sizes}
-          // Mapbox serves these ready-sized; sending them through the optimizer would also drop the referrer a URL-restricted token needs.
-          unoptimized={src !== activity.imageUrl}
-          className="object-cover transition-transform duration-500 group-hover/card:scale-[1.06]"
-          onError={() => setFailures((n) => n + 1)}
-        />
-      )}
+    <div
+      className={cn("relative grid place-items-center overflow-hidden bg-topo-navy bg-topo", className)}
+      style={{ backgroundColor: meta.pastel }}
+    >
+      <Icon
+        aria-hidden="true"
+        className="size-[34%] max-h-16 max-w-16 transition-transform duration-500 group-hover/card:scale-110"
+        style={{ color: meta.color }}
+        strokeWidth={1.5}
+      />
     </div>
   );
 }
@@ -161,7 +145,6 @@ function ActivityCardImpl({
         <div className="flex gap-3 @[620px]:contents">
           <ActivityThumb
             activity={activity}
-            sizes="138px"
             className="size-[92px] shrink-0 rounded-12 @[620px]:h-[135px] @[620px]:w-[138px]"
           />
 

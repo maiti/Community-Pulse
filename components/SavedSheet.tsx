@@ -25,7 +25,7 @@ export function SavedItem({ activity, onOpen }: { activity: Activity; onOpen: ()
       className="group/card flex gap-3 rounded-14 border border-line bg-white p-2.5 shadow-card"
     >
       <button type="button" onClick={onOpen} className="shrink-0" aria-label={`Show ${activity.title} on the map`}>
-        <ActivityThumb activity={activity} sizes="72px" className="size-[72px] rounded-12" />
+        <ActivityThumb activity={activity} className="size-[72px] rounded-12" />
       </button>
       <div className="min-w-0 flex-1">
         <p className="text-micro font-semibold" style={{ color: meta.color === "#F5A623" ? "#B97100" : meta.color }}>

@@ -20,7 +20,7 @@ Every key is optional. The app works with none of them: it falls back to the ill
 
 | Variable | What it enables |
 | --- | --- |
-| `NEXT_PUBLIC_MAPBOX_TOKEN` | Mapbox street tiles, plus small map snapshots used as thumbnails for listings that have no photo of their own ([Static Images API](https://docs.mapbox.com/api/maps/static-images/), free up to 50,000 a month). Without it, or if it's rejected, the app draws its own illustrated map and falls back to category photos. |
+| `NEXT_PUBLIC_MAPBOX_TOKEN` | Mapbox street tiles. Without it, or if it's rejected, the app draws its own illustrated map. |
 | `TICKETMASTER_API_KEY` | Upcoming arts, music, family, and sports events from the [Ticketmaster Discovery API](https://developer.ticketmaster.com/), 45 days ahead. A separate Family search runs alongside the general one so all-ages events aren't crowded out by club shows. |
 | `GOOGLE_PLACES_API_KEY` | Libraries, parks, cafés, bowling alleys, community centers, museums, art galleries, arcades, skate parks, pools, and botanical gardens (Nearby Search), plus food banks, youth centers, community gardens, volunteer centers, climbing gyms, and makerspaces (Text Search) from Google Places. Enable **Places API (New)** for the key; the legacy Nearby Search is tried only if the new API is refused. |
 | `EVENTBRITE_API_TOKEN` | Eventbrite events. |
@@ -35,7 +35,7 @@ On Vercel, add the same variables under **Project → Settings → Environment V
 The browser calls `GET /api/activities?lat=…&lng=…&district=…&vibe=…&transport=…` whenever the location or the quiz picks change.
 
 - **Fan-out:** the route queries Eventbrite, Ticketmaster, Google Places, and OpenStreetMap in parallel with `Promise.allSettled`. A missing key, timeout (8 s), or rate limit only affects that one source, and the response reports each source's status.
-- **One schema:** each adapter in `lib/api/` maps its results into the same `Activity` shape as the sample data. Travel times are estimated from straight-line distance. Photos come from Ticketmaster or Eventbrite when available. Google and OpenStreetMap places, and events without a photo, show a Mapbox map snapshot of their street corner instead, so two places never share the same picture. The browser loads it straight from Mapbox, and if it fails the card falls back to a category photo from Unsplash. The snapshots hide Mapbox's own credit, so the feed shows one line of attribution under the list.
+- **One schema:** each adapter in `lib/api/` maps its results into the same `Activity` shape as the sample data. Travel times are estimated from straight-line distance. Cards show a category icon rather than a photo, because most sources have no picture of the actual place. Adapters still fill `imageUrl` (a Ticketmaster or Eventbrite photo, or a category stock photo) in case photos come back later.
 - **When:** "Today" and "This weekend" (Friday 5 PM through Sunday) narrow events by start date and hide ones that have already ended. Drop-in spaces stay in the feed, since they're open whenever you go.
 - **Quiz-aware:** `vibe` limits which kinds of places are searched, and `transport` sets the search radius (2.5 km walking up to 16 km by car).
 - **Teen-safe:** events marked 18+ or 21+, cancelled shows, and upsell listings (VIP packages, parking) are dropped. Ticketmaster music, comedy, and uncategorized events are kept only when the listing says all ages (or a minimum age of 14 or under), because club shows are often 21+ without being flagged. Campus libraries are left out, since they usually need a student ID.
@@ -69,7 +69,7 @@ Google Places requests are billed per call after Google's monthly free tier: one
 | `components/map/` | Mapbox renderer, illustrated fallback map, shared pin layer |
 | `docs/DEMO_SCRIPT.md` | Shot list and narration for the Congressional App Challenge video |
 
-Saved activities, RSVPs, quiz picks, and the chosen region are stored in `localStorage`, so they stay on the user's device. Saved and planned listings are kept as snapshots, so they stay in your list after the live feed moves on.
+On desktop, drag the handle between the list and the map to resize them (or focus it and use the arrow keys; double-click resets it). Saved activities, RSVPs, quiz picks, the chosen region, and that split are stored in `localStorage`, so they stay on the user's device. Saved and planned listings are kept as snapshots, so they stay in your list after the live feed moves on.
 
 ### Adding a new community
 

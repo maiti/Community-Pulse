@@ -7,7 +7,6 @@ import { useAppState } from "@/lib/app-state";
 import { ALL_FILTER, CATEGORIES, CATEGORY_ORDER } from "@/lib/categories";
 import { useLocationState } from "@/lib/location-state";
 import { buildFeed, describePrefs, hasCriteria, matchesWhen, type WhenFilter } from "@/lib/match";
-import { STATIC_MAP_ATTRIBUTION, staticMapUrl } from "@/lib/static-map";
 import type { CategoryId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { ActivityCard } from "./ActivityCard";
@@ -238,7 +237,6 @@ export function DiscoveryFeed() {
   const preferredMode = appliedPrefs?.modes[0] ?? "transit";
   const onSelect = useCallback((id: string) => setSelectedId(id), [setSelectedId]);
   const loading = feedStatus === "loading";
-  const showsMapThumbs = useMemo(() => feed.some(({ activity }) => staticMapUrl(activity)), [feed]);
 
   return (
     <div className="flex flex-col">
@@ -376,8 +374,6 @@ export function DiscoveryFeed() {
           </motion.li>
         )}
       </ul>
-      {/* The snapshots hide Mapbox's own credit, which then has to appear on the page. */}
-      {showsMapThumbs && <p className="-mt-5 px-4 pb-6 text-[10.5px] text-ink-soft lg:px-7">{STATIC_MAP_ATTRIBUTION}</p>}
     </div>
   );
 }

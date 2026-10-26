@@ -41,7 +41,7 @@ export function PlanDialog() {
           return (
             <>
               <div className="relative h-36">
-                <ActivityThumb activity={activity} sizes="460px" className="absolute inset-0" />
+                <ActivityThumb activity={activity} className="absolute inset-0" />
                 <div className="absolute inset-0 bg-gradient-to-t from-navy/80 to-transparent" />
                 <CategoryBadge activity={activity} className="absolute left-5 top-4" />
                 <DialogTitle className="absolute inset-x-5 bottom-3 text-[20px] leading-6 text-white">{activity.title}</DialogTitle>
