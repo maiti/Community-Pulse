@@ -49,7 +49,8 @@ export function LiveBadge() {
   const [open, setOpen] = useState(false);
   const panelId = useId();
 
-  const place = profile.kind === "detected" ? (feedMeta?.areaLabel ?? "Your Neighborhood") : profile.name;
+  // Detected locations show the exact city from the Census, not the busiest nearby venue city.
+  const place = profile.name;
   const loading = feedStatus === "loading";
   const live = !loading && feedStatus !== "offline" && (feedMeta?.liveCount ?? 0) > 0;
   const label = loading ? "Connecting to live sources…" : live ? `Live Feed for ${place}` : `Sample Feed for ${place}`;
@@ -120,7 +121,7 @@ export function LiveBadge() {
               </p>
             ) : (
               <ul className="mt-1 divide-y divide-line">
-                {feedMeta.sources.map((s) => (
+                {feedMeta.sources.filter((s) => s.state === "ok").map((s) => (
                   <SourceRow key={s.id} source={s} />
                 ))}
               </ul>

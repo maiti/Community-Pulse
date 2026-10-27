@@ -85,11 +85,14 @@ async function fetchDistrict({ lat, lng }: Coordinates): Promise<District | null
   }
 }
 
+/** Name for a detected location until the Census tells us which city it's in. */
+export const DETECTED_PLACEHOLDER = "Your Neighborhood";
+
 function detectedProfile(coords: Coordinates, district: District | null): LocationProfile {
   return {
     id: "detected",
     code: district?.code ?? "Near Me",
-    name: "Your Neighborhood",
+    name: district?.city ?? DETECTED_PLACEHOLDER,
     label: district ? `${district.label} · your location` : "Based on your device location",
     kind: "detected",
     centroid: coords,

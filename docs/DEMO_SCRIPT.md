@@ -6,7 +6,8 @@ Target length: **2:45**. The Congressional App Challenge requires a public YouTu
 
 - [ ] Deployed site loads, with `TICKETMASTER_API_KEY` and `GOOGLE_PLACES_API_KEY` set and the site redeployed after adding them.
 - [ ] Open `/api/activities?lat=…&lng=…` for your own district. `sources` shows `ok` for Ticketmaster and Google, and `usedFallback` is `false`.
-- [ ] Open `/api/district?lat=…&lng=…` with your coordinates. It returns your district code, such as `CA-11`.
+- [ ] Open `/api/district?lat=…&lng=…` with your coordinates. It returns your district code, such as `CA-10`, and your exact city, such as `Orinda` (not the nearest big city).
+- [ ] The **Live Feed** badge's breakdown only lists sources that returned listings, so nothing reads "not set up" on camera.
 - [ ] `NEXT_PUBLIC_MAPBOX_TOKEN` is set if you want street tiles; the illustrated map also looks good on camera.
 - [ ] Record in a **fresh browser profile or incognito window** so the quiz shows on first load and no old saves appear.
 - [ ] Browser zoom at 110 to 125 percent so text is readable in the video. Window around 1440 × 900. Hide bookmarks and other tabs.
@@ -23,7 +24,7 @@ Target length: **2:45**. The Congressional App Challenge requires a public YouTu
 | 1:05 – 1:35 | Feed results. Click the **Live Feed** badge to show where listings come from. Click the **Volunteer** filter and show a food bank or youth center. | "The feed is live. Our server pulls real places from Google and all-ages events from Ticketmaster, then ranks them by your answers and how long it takes to get there by bus, bike, or on foot. We filter out 21+ shows and campus libraries, because this is built for teens." |
 | 1:35 – 1:55 | Switch to **Map**. Click a pin, then the popup | "Everything is on a map too, so you can see what's actually nearby. Every listing links straight to directions." |
 | 1:55 – 2:15 | Click **Visit** or **RSVP** on a card, confirm in the dialog, then open **My Activity** | "When something looks good, you can plan a visit or RSVP, and it shows up in My Activity, so going out becomes a plan instead of a maybe." |
-| 2:15 – 2:30 | **Change Region**, then **Use my current location**. The header changes to your real district code | "It works anywhere in the country. Tap 'use my location' and the U.S. Census Bureau's geocoder tells us which congressional district you're in, so a student in any district gets their own local feed." |
+| 2:15 – 2:30 | **Change Region**, then **Use my current location**. The header changes to your real district code, and the badge reads **Live Feed for** your exact town (for example, Orinda) | "It works anywhere in the country. Tap 'use my location' and the U.S. Census Bureau's geocoder tells us your exact town and which congressional district you're in, so a student in any district gets their own local feed." |
 | 2:30 – 2:45 | A slide or text overlay listing the stack | "We built it with **TypeScript**, **React**, and **Next.js**, styled with **Tailwind CSS**. The map is **Mapbox**, and the data comes from the **Google Places**, **Ticketmaster**, and **U.S. Census** APIs, all deployed on **Vercel**." |
 | 2:45 | Logo | "CommunityPulse: find your people, close to home. Thanks for watching." |
 
