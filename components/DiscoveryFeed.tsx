@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CalendarDays, LoaderCircle, Pencil, Play, SearchX, Sparkles, X } from "lucide-react";
 import { useAppState } from "@/lib/app-state";
 import { ALL_FILTER, CATEGORIES, CATEGORY_ORDER } from "@/lib/categories";
-import { useLocationState } from "@/lib/location-state";
+import { DETECTED_PLACEHOLDER, useLocationState } from "@/lib/location-state";
 import { buildFeed, describePrefs, hasCriteria, matchesWhen, type WhenFilter } from "@/lib/match";
 import type { CategoryId } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -252,7 +252,7 @@ export function DiscoveryFeed() {
                 transition={{ duration: 0.22 }}
                 className="truncate"
               >
-                Discover {profile.kind === "detected" ? "Your Community" : profile.name}
+                Discover {profile.name === DETECTED_PLACEHOLDER ? "Your Community" : profile.name}
               </motion.span>
             </AnimatePresence>
             <Sunburst className="-mt-3 size-10 shrink-0" />

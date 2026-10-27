@@ -182,7 +182,7 @@ export function MapView({ className }: { className?: string }) {
       {!useMapbox && (
         <p
           className="absolute left-4 top-[68px] z-10 hidden items-center gap-1.5 rounded-full bg-white/80 px-2.5 py-1 text-micro font-medium text-ink-muted backdrop-blur-sm sm:inline-flex"
-          title="Set NEXT_PUBLIC_MAPBOX_TOKEN to load street tiles"
+          title="Illustrated map"
         >
           <Layers className="size-3.5 text-teal" />
           Illustrated map · {profile.code}

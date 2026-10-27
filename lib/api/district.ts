@@ -27,7 +27,22 @@ export type District = {
   /** e.g. "California's 11th Congressional District". */
   label: string;
   state: string;
+  /** The exact city or town at the point ("Orinda", not the nearest big city), when the Census knows it. */
+  city?: string;
 };
+
+/**
+ * The incorporated city or town at the point, falling back to a Census
+ * Designated Place for unincorporated communities.
+ */
+function parseCity(layers: Record<string, CensusGeo[] | undefined>): string | undefined {
+  for (const pattern of [/incorporated places/i, /census designated places/i]) {
+    const name = Object.keys(layers).find((k) => pattern.test(k));
+    const place = name ? layers[name]?.[0]?.BASENAME : undefined;
+    if (place) return place;
+  }
+  return undefined;
+}
 
 type CensusGeo = Record<string, string | undefined>;
 type CensusResponse = { result?: { geographies?: Record<string, CensusGeo[] | undefined> } };
@@ -59,12 +74,14 @@ export function parseDistrict(data: CensusResponse): District | null {
   if (!state || !raw || raw === "ZZ") return null;
 
   const [abbr, name] = state;
+  const city = parseCity(layers);
   // 00 is an at-large seat; 98 is a non-voting delegate (DC and the territories).
   if (raw === "00" || raw === "98") {
     return {
       code: `${abbr}-AL`,
       label: raw === "98" ? `${name} · Delegate District (at Large)` : `${name}'s At-Large Congressional District`,
       state: abbr,
+      city,
     };
   }
   const n = Number(raw);
@@ -73,6 +90,7 @@ export function parseDistrict(data: CensusResponse): District | null {
     code: `${abbr}-${String(n).padStart(2, "0")}`,
     label: `${name}'s ${ordinal(n)} Congressional District`,
     state: abbr,
+    city,
   };
 }
 
