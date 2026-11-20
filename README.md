@@ -1,12 +1,26 @@
-# Community-Pulse
+# CommunityPulse
 
 CommunityPulse connects teens with local third spaces, community hubs, and volunteer opportunities to fight social isolation. It works in any congressional district or city: pick one from the region selector or use your device location.
 
-Built with Next.js 16 (App Router), TypeScript, Tailwind CSS 3, framer-motion, Radix-based shadcn/ui primitives, and mapbox-gl.
+**Try it live:** https://community-pulse-tau.vercel.app
+
+![CommunityPulse showing live places and events in California's 11th district, with the list on the left and the map on the right](docs/screenshot.png)
+
+Built for the 2026 Congressional App Challenge with Next.js 16 (App Router), TypeScript, Tailwind CSS 3, framer-motion, Radix-based shadcn/ui primitives, and mapbox-gl.
+
+## What it does
+
+- **Discover:** a live feed of nearby events and drop-in spaces (libraries, parks, community centers, skate parks, cafés, volunteer spots), sorted nearest first, with travel times by car, transit, and walking.
+- **Personalize:** a three-question quiz (vibe, how you get around, when you're free) narrows and ranks the feed.
+- **Map:** every listing on a map of your district, with the real congressional district outline.
+- **My Activity:** save places and RSVP to events; everything stays on your device.
+- **Community and Resources:** browse groups by type, and find teen support lines and volunteer networks.
 
 ## Run it
 
 ```bash
+git clone https://github.com/maiti/Community-Pulse.git
+cd Community-Pulse
 npm install
 cp .env.example .env.local   # then fill in the keys you have
 npm run dev        # http://localhost:3000
@@ -14,7 +28,7 @@ npm run build      # production build
 npm run lint
 ```
 
-Every key is optional. The app works with none of them: it falls back to the illustrated map and the curated sample listings.
+You need Node.js 20.9 or newer. Every key is optional. The app works with none of them: it falls back to the illustrated map and the curated sample listings.
 
 ### Environment variables
 
@@ -74,3 +88,15 @@ On desktop, drag the handle between the list and the map to resize them (or focu
 ### Adding a new community
 
 Add a profile to `LOCATION_PROFILES` in `lib/location-state.tsx`: code, name, centroid, and the neighborhoods that border it to the north, south, east, and west. Live sources pick it up automatically.
+
+## Deploy
+
+The live site runs on Vercel. Import the repo in Vercel, add any of the environment variables above under **Project → Settings → Environment Variables**, and deploy. No database is needed.
+
+## Team
+
+Built by Yuvaan Maiti, Kai Izzi, and Sean Gupta for the 2026 Congressional App Challenge.
+
+## License
+
+[MIT](LICENSE)
